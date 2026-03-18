@@ -1,0 +1,9 @@
+﻿src/app/features/admin/components/dashboard/admin-dashboard.component.spec.ts(17,48): error TS2345: Argument of type 'Observable<{ month: string; amount: number; }[]>' is not assignable to parameter of type 'Observable<MonthlyRevenue[]>'.
+  Type '{ month: string; amount: number; }[]' is not assignable to type 'MonthlyRevenue[]'.
+    Property 'revenue' is missing in type '{ month: string; amount: number; }' but required in type 'MonthlyRevenue'.
+src/app/features/auth/components/register/register.component.spec.ts(53,45): error TS2345: Argument of type 'Observable<{ message: string; user: any; }>' is not assignable to parameter of type 'Observable<RegisterResponse>'.
+  Type '{ message: string; user: any; }' is missing the following properties from type 'RegisterResponse': email, userId
+src/app/features/auth/services/auth.service.spec.ts(35,27): error TS2345: Argument of type '{ message: string; user: any; }' is not assignable to parameter of type 'Expected<RegisterResponse>'.
+  Type '{ message: string; user: any; }' is missing the following properties from type '{ message: ExpectedRecursive<string>; email: ExpectedRecursive<string>; userId: ExpectedRecursive<number>; }': email, userId
+src/app/features/customer/components/dashboard/customer-dashboard.component.spec.ts(54,35): error TS2339: Property 'calculatedPremium' does not exist on type 'PremiumCalculation'.
+src/app/shared/services/subscription.service.spec.ts(57,42): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'ExpectedRecursive<Vehicle>'.

@@ -1,0 +1,171 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header flex justify-between items-end">
+        <div>
+          <h1 class="page-title">Welcome back, {{ userName }}</h1>
+          <p class="page-subtitle">Your intelligent insurance portal</p>
+        </div>
+        <a routerLink="/customer/policies" class="btn-primary">Browse Coverages</a>
+      </div>
+
+      @if (loading) {
+        <app-loading-spinner message="Loading your dashboard..."></app-loading-spinner>
+      } @else {
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          
+          <div class="card p-5 group flex flex-col justify-between hover:border-blue-300 transition-colors">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-[#FFF1F7] text-[#75013F] flex items-center justify-center mb-4">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-900">{{ activeSubs.length }}</h3>
+              <p class="text-sm font-medium text-slate-500 mt-1">Active Policies</p>
+            </div>
+            <a routerLink="/customer/subscriptions" class="mt-4 text-sm font-semibold text-[#75013F] group-hover:text-[#5e0132] flex items-center gap-1">
+              View details <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+          </div>
+
+          
+          <div class="card p-5 group flex flex-col justify-between hover:border-emerald-300 transition-colors">
+            <div>
+              <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <h3 class="text-2xl font-bold text-slate-900">₹{{ nextPremium ? (nextPremium.finalPremium | number:'1.0-0') : '0' }}</h3>
+              <p class="text-sm font-medium text-slate-500 mt-1">Estimated Next Premium</p>
+            </div>
+            <a routerLink="/login" class="text-sm font-medium text-[#75013F] hover:text-[#5e0132] flex items-center justify-center gap-2">
+              Review calculation <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+          </div>
+
+          
+          <div class="card p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0 shadow-lg relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+              <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div class="relative z-10">
+              <h2 class="text-slate-300 text-sm font-medium mb-1">Overall Driver Safety Score</h2>
+              <div class="mt-3 flex items-end gap-3">
+                <span class="text-4xl font-bold text-emerald-400">{{ safetyScore }}</span>
+                <span class="text-slate-400 font-medium mb-1">/ 100</span>
+              </div>
+              <div class="mt-4">
+                <div class="w-full bg-slate-700 rounded-full h-1.5 mb-2">
+                  <div class="bg-emerald-400 h-1.5 rounded-full" [style.width.%]="safetyScore"></div>
+                </div>
+                <p class="text-xs text-slate-400">{{ safetyRankText }} • {{ safetyMessage }}</p>
+              </div>
+              <button routerLink="/customer/usage" class="mt-5 w-full bg-white/10 hover:bg-white/20 transition-colors py-2 rounded-lg text-sm font-medium text-white">
+                Submit Latest Trip Data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        @if (pendingPayments.length > 0) {
+          <div class="mb-6">
+            <h2 class="text-xl font-bold text-slate-900 mb-4">Pending Premiums</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              @for (payment of pendingPayments; track payment.orderId) {
+                <div class="card p-5 border-l-4 border-l-amber-500 bg-amber-50/30">
+                  <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-bold text-slate-900">{{ payment.policy.policyName }}</h3>
+                    <span class="inline-flex px-2 py-1 rounded-full bg-[#FFF1F7] text-[#75013F] text-xs font-bold">Base: ₹{{ payment.policy.basePremium | number:'1.0-0' }}</span>
+                  </div>
+                  <p class="text-sm text-slate-600 mb-4">Your policy application (#{{payment.orderId}}) is approved. Please pay the premium to activate your coverage.</p>
+                  
+                  <div class="flex justify-between items-center mt-auto border-t border-slate-200/60 pt-4">
+                    <span class="text-sm font-semibold text-slate-500">Status: <span class="text-amber-600">Awaiting Payment</span></span>
+                    <button class="btn-primary py-1.5 px-4 rounded-lg bg-[#75013F] hover:bg-[#5e0132] text-white font-medium shadow-sm transition-colors" (click)="payPremium(payment)">
+                      Pay Now
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <div class="card">
+            <div class="card-header border-b border-slate-100 flex justify-between items-center">
+              <h2 class="font-semibold text-slate-900">Interactive Savings Calculator</h2>
+              <span class="inline-flex px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-semibold">Demo</span>
+            </div>
+            <div class="p-6">
+              <p class="text-sm text-slate-500 mb-6">See how your driving behavior directly impacts your premium.</p>
+              
+              <div class="space-y-6">
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <label class="text-sm font-medium text-slate-700">Monthly Distance (km)</label>
+                    <span class="text-sm font-bold text-slate-900">{{ demoDistance }} km</span>
+                  </div>
+                  <input type="range" min="100" max="3000" step="50" [(ngModel)]="demoDistance" (input)="calcDemo()"
+                         class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+                
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <label class="text-sm font-medium text-slate-700">Night Driving (%)</label>
+                    <span class="text-sm font-bold text-slate-900">{{ demoNight }}%</span>
+                  </div>
+                  <input type="range" min="0" max="60" step="5" [(ngModel)]="demoNight" (input)="calcDemo()"
+                         class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                </div>
+                
+                <div class="pt-6 border-t border-slate-100 flex items-center justify-between">
+                  <div>
+                    <p class="text-sm font-medium text-slate-500">Estimated Base</p>
+                    <p class="text-slate-400 line-through text-lg">₹5,000</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-sm font-bold text-emerald-600">Your UBI Premium</p>
+                    <p class="text-3xl font-bold text-slate-900">₹{{ demoPremium | number:'1.0-0' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="card">
+            <div class="card-header border-b border-slate-100">
+              <h2 class="font-semibold text-slate-900">Shortcuts</h2>
+            </div>
+            <div class="p-4 grid grid-cols-2 gap-3">
+              <a routerLink="/customer/vehicles" class="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-50 hover:bg-[#FFF1F7] hover:text-[#75013F] transition-colors text-slate-700 group border border-slate-100 hover:border-[#f9a3c2]">
+                <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                  <span class="text-xl">🚗</span>
+                </div>
+                <span class="text-sm font-medium">My Vehicles</span>
+              </a>
+              <a routerLink="/customer/claims" class="flex flex-col items-center justify-center p-4 rounded-xl bg-slate-50 hover:bg-amber-50 hover:text-amber-700 transition-colors text-slate-700 group border border-slate-100 hover:border-amber-100">
+                <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                  <span class="text-xl">📄</span>
+                </div>
+                <span class="text-sm font-medium">File a Claim</span>
+              </a>
+              <a routerLink="/customer/usage" class="col-span-2 flex items-center p-4 rounded-xl bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 transition-colors text-slate-700 border border-slate-100 hover:border-emerald-100">
+                <div class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center mr-4">
+                  <span class="text-xl">📱</span>
+                </div>
+                <div>
+                  <span class="block text-sm font-medium">DriveIQ App Sync</span>
+                  <span class="block text-xs text-slate-500">Connect mobile app for automatic tracking</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>

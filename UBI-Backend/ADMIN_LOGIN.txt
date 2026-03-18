@@ -1,0 +1,37 @@
+# Quick Reference - Admin Login Credentials
+
+## 🔐 Admin User Credentials
+
+**Email**: `bhavana@gmail.com`
+**Password**: `Bhavana@12`
+
+## 📋 Auto-Created During Startup
+
+✓ Admin user is automatically created when the backend application starts
+✓ Uses new `AdminUserConfig.java` configuration file
+✓ Password is securely encoded with BCrypt
+✓ Only created once (won't duplicate on subsequent restarts)
+
+## 🚀 To Login
+
+Make a POST request to:
+```
+POST /api/auth/login
+```
+
+With this JSON body:
+```json
+{
+  "email": "bhavana@gmail.com",
+  "password": "Bhavana@12"
+}
+```
+
+You'll receive a JWT token to use for authenticated API requests.
+
+---
+
+**Configuration Files:**
+- `DataInitializer.java` - Creates roles (runs first)
+- `AdminUserConfig.java` - Creates admin user (runs second)
+

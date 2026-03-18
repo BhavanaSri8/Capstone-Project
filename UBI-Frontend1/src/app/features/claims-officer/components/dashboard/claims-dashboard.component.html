@@ -1,0 +1,130 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header flex justify-between items-center">
+        <div>
+          <h1 class="page-title">Claims Assessor Portal</h1>
+          <p class="page-subtitle">Review, investigate, and adjudicate insurance claims</p>
+        </div>
+      </div>
+
+      @if (toast) {
+        <div #toastAlert tabindex="-1" [attr.role]="toast.type === 'error' ? 'alert' : 'status'" [attr.aria-live]="toast.type === 'error' ? 'assertive' : 'polite'" class="mb-4 p-3 rounded-lg text-sm" [class]="toast.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'">{{ toast.message }}</div>
+      }
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <app-stat-card label="Pending Review" [value]="pendingClaims.length" icon="PR" color="amber" sublabel="Requires action"></app-stat-card>
+        <app-stat-card label="Processed Today" [value]="processedToday" icon="CV" color="green" sublabel="Claims closed"></app-stat-card>
+        <app-stat-card label="Total Settled Amount" [value]="'₹' + (totalSettled | number:'1.0-0')" icon="AM" color="blue" sublabel="Approved today"></app-stat-card>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 card flex flex-col h-[calc(100vh-280px)]">
+          <div class="card-header border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+            <h2 class="font-semibold text-slate-900">Urgent Queue ({{ pendingClaims.length }})</h2>
+          </div>
+          <div class="p-0 overflow-y-auto flex-1">
+            @if (loading) {
+              <div class="p-6"><app-skeleton-loader [rowCount]="4" [colCount]="4"></app-skeleton-loader></div>
+            } @else if (pendingClaims.length === 0) {
+              <div class="flex flex-col items-center justify-center p-12 text-center text-slate-500 h-full">
+                <span class="text-4xl mb-3">🎉</span>
+                <p class="font-medium">Queue Cleared</p>
+                <p class="text-xs text-slate-400 mt-1">All claims have been processed up to this point.</p>
+              </div>
+            } @else {
+               
+               <div class="divide-y divide-slate-100">
+                 @for (claim of pendingClaims; track claim.claimId) {
+                   <div class="p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row gap-5">
+                     
+                     <div class="flex-1">
+                       <div class="flex items-center gap-3 mb-2">
+                         <span class="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold">#{{ claim.claimId }}</span>
+                         <span class="text-xs font-medium text-slate-400">• Filed {{ claim.submittedDate | date:'mediumDate' }}</span>
+                       </div>
+                       <h3 class="font-bold text-slate-900 text-lg mb-1">{{ claim.customerName || claim.subscription?.order?.user?.fullName || 'Unknown' }}</h3>
+                       <p class="text-sm font-medium text-slate-600 mb-3">Policy: {{ claim.subscription?.order?.policy?.policyName || 'Unknown' }} <span class="text-xs font-normal text-slate-400">(ID: {{ claim.subscription?.subscriptionId || claim.subscriptionId }})</span></p>
+                       
+                       <div class="flex items-center gap-2 mb-3">
+                         <span [class]="'px-2 py-0.5 rounded text-[10px] font-bold border ' + 
+                           (claim.subscription?.order?.orderStatus === 'PAID' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200')">
+                           Policy: {{ claim.subscription?.order?.orderStatus || 'Unknown' }}
+                         </span>
+                         @if (claim.subscription?.order?.orderStatus !== 'PAID') {
+                           <span class="text-[10px] text-red-500 font-medium italic">⚠️ Premium payment required before processing</span>
+                         }
+                       </div>
+                       
+                       <div class="bg-amber-50/50 p-4 border border-amber-100 rounded-lg text-sm text-slate-700 italic border-l-4 border-l-amber-400">
+                         "{{ claim.claimReason }}"
+                       </div>
+                     </div>
+                     
+                     
+                     <div class="w-full md:w-64 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-5">
+                        <div>
+                           <p class="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Claim Amount</p>
+                           <p class="text-2xl font-bold text-slate-900 mb-4">₹{{ claim.claimAmount | number:'1.2-2' }}</p>
+                        </div>
+                        
+                        <div class="flex flex-col gap-2 mt-auto">
+                          @if (claim.claimStatus === 'PENDING' || !claim.claimStatus) {
+                            <button (click)="approve(claim)" [disabled]="submittingId === claim.claimId" class="w-full btn-success flex justify-center items-center py-2 text-sm font-medium shadow-sm gap-2">
+                              @if (submittingId === claim.claimId) { <span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span> }
+                              @else { <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> }
+                              Approve Claim
+                            </button>
+                            <button (click)="reject(claim)" [disabled]="submittingId === claim.claimId" class="w-full btn-danger flex justify-center items-center py-2 text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 border-0 gap-2">
+                              @if (submittingId !== claim.claimId) { <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> }
+                              Reject Claim
+                            </button>
+                          } @else {
+                            <div class="w-full text-center py-2 rounded font-bold text-xs uppercase"
+                              [class]="claim.claimStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
+                              {{ claim.claimStatus }}
+                            </div>
+                          }
+                        </div>
+                     </div>
+                   </div>
+                 }
+               </div>
+            }
+          </div>
+        </div>
+        
+        
+        <div class="card h-[calc(100vh-280px)] flex flex-col">
+           <div class="card-header border-b border-slate-100 sticky top-0 bg-white"><h2 class="font-semibold text-slate-900 text-sm">Recently Processed</h2></div>
+           <div class="p-0 overflow-y-auto flex-1">
+             @if (loading) { <div class="p-4"><app-skeleton-loader [rowCount]="5"></app-skeleton-loader></div> }
+             @else if (processedClaims.length === 0) {
+                <div class="p-6 text-center text-slate-400 text-sm">No recent activity</div>
+             } @else {
+                <div class="divide-y divide-slate-100">
+                  @for (claim of processedClaims.slice(0, 10); track claim.claimId) {
+                    <div class="p-4 flex gap-3 items-start">
+                      <div class="w-8 h-8 rounded-full flex shrink-0 items-center justify-center mt-0.5" [class]="claim.claimStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'">
+                        @if (claim.claimStatus === 'APPROVED') { <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> }
+                        @else { <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> }
+                      </div>
+                      <div>
+                        <p class="text-sm font-medium text-slate-900">#{{ claim.claimId }} {{ claim.claimStatus }}</p>
+                        <p class="text-xs text-slate-500 mb-1">{{ claim.subscription?.order?.user?.fullName || claim.customerName || 'Unknown' }} • ₹{{ claim.claimAmount | number:'1.0-0' }}</p>
+                        <p class="text-[10px] text-slate-400">{{ claim.submittedDate | date:'short' }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+             }
+           </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,113 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <app-navbar></app-navbar>
+
+        <main class="flex-1 overflow-y-auto p-6">
+            
+            <div class="page-header flex items-center justify-between">
+                <div>
+                    <h1 class="page-title">Admin Dashboard</h1>
+                    <p class="page-subtitle">Overview of platform performance and metrics</p>
+                </div>
+            </div>
+
+            @if (loading) {
+            <app-loading-spinner message="Loading dashboard..."></app-loading-spinner>
+            } @else {
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <app-stat-card label="Total Users" [value]="summary?.totalUsers ?? 0" icon="👥" color="blue"
+                    sublabel="Registered accounts"></app-stat-card>
+                <app-stat-card label="Active Policies" [value]="summary?.totalPolicies ?? 0" icon="🛡️" color="green"
+                    sublabel="Insurance policies"></app-stat-card>
+                <app-stat-card label="Active Subscriptions" [value]="summary?.activeSubscriptions ?? 0" icon="📋"
+                    color="amber" sublabel="Policy subscriptions"></app-stat-card>
+                <app-stat-card label="Monthly Revenue" [value]="'₹' + ((summary?.monthlyRevenue ?? 0) | number:'1.0-0')"
+                    icon="💰" color="green" sublabel="This month"></app-stat-card>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                <app-stat-card label="Total Claims" [value]="summary?.totalClaims ?? 0" icon="📄" color="red"
+                    sublabel="All time"></app-stat-card>
+                <app-stat-card label="Pending Orders" [value]="summary?.pendingOrders ?? 0" icon="⏳" color="amber"
+                    sublabel="Awaiting approval"></app-stat-card>
+                <app-stat-card label="Total Subscriptions" [value]="summary?.totalSubscriptions ?? 0" icon="🔗"
+                    color="slate" sublabel="All statuses"></app-stat-card>
+            </div>
+
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-sm font-semibold text-slate-900">Risk Distribution</h2>
+                    </div>
+                    <div class="card-body space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-slate-600">Low Risk</span>
+                                <span class="badge-low">{{ riskPercentage.low }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full transition-all duration-500"
+                                    [style.width.%]="riskPercentage.low"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-slate-600">Medium Risk</span>
+                                <span class="badge-medium">{{ riskPercentage.med }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                                    [style.width.%]="riskPercentage.med"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm text-slate-600">High Risk</span>
+                                <span class="badge-high">{{ riskPercentage.high }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full transition-all duration-500"
+                                    [style.width.%]="riskPercentage.high"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-sm font-semibold text-slate-900">Quick Actions</h2>
+                    </div>
+                    <div class="card-body grid grid-cols-2 gap-3">
+                        <a routerLink="/admin/policies"
+                            class="flex flex-col items-center gap-2 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-center">
+                            <span class="text-2xl">🛡️</span>
+                            <span class="text-xs font-medium text-slate-700">Manage Policies</span>
+                        </a>
+                        <a routerLink="/admin/orders"
+                            class="flex flex-col items-center gap-2 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-center">
+                            <span class="text-2xl">📋</span>
+                            <span class="text-xs font-medium text-slate-700">Review Orders</span>
+                        </a>
+                        <a routerLink="/admin/users"
+                            class="flex flex-col items-center gap-2 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-center">
+                            <span class="text-2xl">👥</span>
+                            <span class="text-xs font-medium text-slate-700">Manage Users</span>
+                        </a>
+                        <a routerLink="/admin/claims"
+                            class="flex flex-col items-center gap-2 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-center">
+                            <span class="text-2xl">📄</span>
+                            <span class="text-xs font-medium text-slate-700">View Claims</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            }
+        </main>
+    </div>
+</div>

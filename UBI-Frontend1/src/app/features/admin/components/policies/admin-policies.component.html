@@ -1,0 +1,237 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+    <app-sidebar></app-sidebar>
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <app-navbar></app-navbar>
+        <main class="flex-1 overflow-y-auto p-6">
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Policies Management</h1>
+                    <p class="text-gray-500 mt-1">Create, edit, and manage insurance policy products.</p>
+                </div>
+                <button (click)="openCreate()"
+                    class="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-all duration-200 shadow-lg shadow-indigo-200 group">
+                    <i class="fas fa-plus mr-2 group-hover:rotate-90 transition-transform duration-300"></i>
+                    Create New Policy
+                </button>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Policies</label>
+                        <div class="relative">
+                            <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()"
+                                placeholder="Search by name or type..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select (change)="onStatusChange($event)"
+                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none">
+                            <option value="all">All Statuses</option>
+                            <option value="true">Active Only</option>
+                            <option value="false">Inactive Only</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button (click)="clearFilters()"
+                            class="px-6 py-2.5 text-indigo-600 font-medium hover:bg-indigo-50 rounded-xl transition-colors flex items-center">
+                            <i class="fas fa-undo mr-2"></i>
+                            Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @if (successMessage) {
+            <div #successAlert tabindex="-1" role="status" aria-live="polite" class="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">✓ {{
+                successMessage }}</div>
+            }
+            @if (errorMessage) {
+            <div #errorAlert tabindex="-1" role="alert" aria-live="assertive" class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">{{ errorMessage }}</div>
+            }
+
+            <div class="card">
+                @if (loading) {
+                <div class="p-6"><app-skeleton-loader [rowCount]="5" [colCount]="5"></app-skeleton-loader></div>
+                } @else if (policies.length === 0) {
+                <div class="flex flex-col items-center justify-center py-16 text-center">
+                    <span class="text-4xl mb-3">🛡️</span>
+                    <p class="text-slate-500 font-medium">No policies yet</p>
+                    <p class="text-sm text-slate-400 mt-1">Create your first insurance policy</p>
+                    <button (click)="openCreate()" class="btn-primary mt-4">Create Policy</button>
+                </div>
+                } @else {
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="table-th">ID</th>
+                                <th class="table-th">Policy Name</th>
+                                <th class="table-th">Coverage Type</th>
+                                <th class="table-th">Pricing Model</th>
+                                <th class="table-th">Term (Years)</th>
+                                <th class="table-th">Status</th>
+                                <th class="table-th text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @for (policy of policies; track policy.policyId) {
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="table-td text-slate-400 text-xs">#{{ policy.policyId }}</td>
+                                <td class="table-td font-medium text-slate-900">{{ policy.policyName }}</td>
+                                <td class="table-td">{{ policy.coverageType }}</td>
+                                <td class="table-td">
+                                    <span class="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">Usage-based</span>
+                                </td>
+                                <td class="table-td">{{ policy.policyTermYears || 5 }} years</td>
+                                <td class="table-td">
+                                    <span [class]="policy.isActive ? 'badge-active' : 'badge-inactive'">
+                                        {{ policy.isActive ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </td>
+                                <td class="table-td text-right">
+                                    <button (click)="openEdit(policy)" class="btn-secondary text-xs py-1 px-2 mr-2">Edit</button>
+                                    <button (click)="toggleStatus(policy)"
+                                        [class]="policy.isActive ? 'btn-danger text-xs py-1 px-2 mr-2' : 'btn-success text-xs py-1 px-2 mr-2'">
+                                        {{ policy.isActive ? 'Deactivate' : 'Activate' }}
+                                    </button>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                
+                <div class="flex items-center justify-between px-4 py-3 border-t border-slate-200">
+                    <p class="text-xs text-slate-500">Page {{ page + 1 }} of {{ totalPages }}</p>
+                    <div class="flex gap-2">
+                        <button (click)="prevPage()" [disabled]="page === 0"
+                            class="btn-secondary text-xs py-1.5 px-3 disabled:opacity-40">Previous</button>
+                        <button (click)="nextPage()" [disabled]="page >= totalPages - 1"
+                            class="btn-secondary text-xs py-1.5 px-3 disabled:opacity-40">Next</button>
+                    </div>
+                </div>
+                }
+            </div>
+
+            
+            <app-modal [isOpen]="showModal" [title]="editingPolicyId ? 'Edit Policy' : 'Create New Policy'" [size]="'lg'" (closed)="showModal = false">
+                <form [formGroup]="policyForm" (ngSubmit)="onSubmit()">
+                    <div class="space-y-4">
+                        
+                        <div class="border-b border-slate-200 pb-4">
+                            <h4 class="text-sm font-semibold text-slate-900 mb-3">Basic Information</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="form-label">Policy Name</label>
+                                    <input type="text" formControlName="policyName" class="form-input"
+                                        placeholder="e.g. Comprehensive Cover" />
+                                    @if (policyForm.get('policyName')?.invalid && policyForm.get('policyName')?.touched) {
+                                    <p class="form-error">Policy name must be between 3 and 100 characters.</p>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="form-label">Coverage Type</label>
+                                    <select formControlName="coverageType" class="form-input">
+                                        <option value="">Select coverage type</option>
+                                        <option value="COMPREHENSIVE">Comprehensive</option>
+                                        <option value="THIRD_PARTY">Third Party</option>
+                                        <option value="OWN_DAMAGE">Own Damage</option>
+                                        <option value="ZERO_DEPRECIATION">Zero Depreciation</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label class="form-label">Description</label>
+                                <textarea formControlName="description" class="form-input" rows="2"
+                                    placeholder="Policy details..."></textarea>
+                                @if (policyForm.get('description')?.invalid && policyForm.get('description')?.touched) {
+                                <p class="form-error">Description must be between 10 and 500 characters.</p>
+                                }
+                            </div>
+                        </div>
+
+                        
+                        <div class="border-b border-slate-200 pb-4">
+                            <h4 class="text-sm font-semibold text-slate-900 mb-3">Financial Details</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="form-label">Base Premium (₹)</label>
+                                    <input type="number" formControlName="basePremium" class="form-input"
+                                        placeholder="e.g. 5200" min="1" />
+                                    @if (policyForm.get('basePremium')?.invalid && policyForm.get('basePremium')?.touched) {
+                                    <p class="form-error">Base premium is required and must be greater than 0</p>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="form-label">Policy Term (Years)</label>
+                                    <input type="number" formControlName="policyTermYears" class="form-input"
+                                        placeholder="e.g. 5" min="1" max="30" />
+                                    @if (policyForm.get('policyTermYears')?.invalid && policyForm.get('policyTermYears')?.touched) {
+                                    <p class="form-error">Policy term required (1-30 years)</p>
+                                    }
+                                </div>
+                                <div>
+                                    <label class="form-label">Maturity Amount (₹)</label>
+                                    <input type="number" formControlName="maturityAmount" class="form-input"
+                                        placeholder="Enter maturity amount (e.g. 45000)" min="0" />
+                                    <p class="text-xs text-slate-500 mt-1">Optional: enter any amount. If left empty, 0 is stored.</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-blue-700 mt-3">Premium is calculated dynamically from user driving usage and active rules.</p>
+                        </div>
+
+                        
+                        <div class="pb-2">
+                            <h4 class="text-sm font-semibold text-slate-900 mb-3">Benefits & Features</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                    <input type="checkbox" formControlName="hasPremiumWaiver" 
+                                           class="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500" />
+                                    <div class="flex-1">
+                                        <label class="text-sm font-semibold text-slate-900 cursor-pointer">Premium Waiver Benefit</label>
+                                        <p class="text-xs text-slate-600 mt-0.5">Future premiums waived in case of critical illness or disability</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                    <input type="checkbox" formControlName="hasPartialWithdrawal" 
+                                           class="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500" />
+                                    <div class="flex-1">
+                                        <label class="text-sm font-semibold text-slate-900 cursor-pointer">Partial Withdrawal</label>
+                                        <p class="text-xs text-slate-600 mt-0.5">Allow customers to withdraw funds before maturity</p>
+                                    </div>
+                                </div>
+
+                                @if (policyForm.get('hasPartialWithdrawal')?.value) {
+                                <div class="ml-7">
+                                    <label class="form-label text-xs">Withdrawal Conditions</label>
+                                    <textarea formControlName="withdrawalConditions" class="form-input text-sm" rows="2"
+                                        placeholder="e.g., Withdraw up to 50% of accumulated value after 3 years"></textarea>
+                                    @if (policyForm.get('withdrawalConditions')?.invalid && policyForm.get('withdrawalConditions')?.touched) {
+                                    <p class="form-error">Withdrawal conditions cannot exceed 500 characters.</p>
+                                    }
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200">
+                        <button type="button" (click)="showModal = false" class="btn-secondary">Cancel</button>
+                        <button type="submit" [disabled]="submitting || policyForm.invalid" class="btn-primary flex items-center gap-2">
+                            @if (submitting) { <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white">
+                            </div> }
+                            {{ editingPolicyId ? 'Update Policy' : 'Create Policy' }}
+                        </button>
+                    </div>
+                </form>
+            </app-modal>
+        </main>
+    </div>
+</div>

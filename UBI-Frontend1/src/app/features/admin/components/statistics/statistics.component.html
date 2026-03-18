@@ -1,0 +1,129 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <app-navbar></app-navbar>
+
+        <main class="flex-1 overflow-y-auto p-6">
+            <!-- Header -->
+            <div class="page-header flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="page-title">Platform Statistics</h1>
+                    <p class="page-subtitle">Holistic view of system performance and data analytics</p>
+                </div>
+            </div>
+
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FE3082]"></div>
+  </div>
+
+  <div *ngIf="error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm text-red-700">{{ error }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error && stats" class="space-y-6">
+    <!-- Top KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div class="card p-4 hover-lift">
+        <h3 class="text-sm font-medium text-slate-500 mb-1">Customers</h3>
+        <p class="text-2xl font-bold text-slate-900">{{ stats.totalCustomers }}</p>
+      </div>
+      <div class="card p-4 hover-lift">
+        <h3 class="text-sm font-medium text-slate-500 mb-1">Vehicles</h3>
+        <p class="text-2xl font-bold text-slate-900">{{ stats.totalVehicles }}</p>
+      </div>
+      <div class="card p-4 hover-lift border-b-4 border-slate-900">
+        <h3 class="text-sm font-medium text-slate-500 mb-1">Total Policies</h3>
+        <p class="text-2xl font-bold text-slate-900">{{ stats.totalPolicies }}</p>
+      </div>
+      <div class="card p-4 hover-lift border-b-4 border-[#75013F]">
+        <h3 class="text-sm font-medium text-slate-500 mb-1">Active Policies</h3>
+        <p class="text-2xl font-bold text-slate-900">{{ stats.activePolicies }}</p>
+      </div>
+      <div class="card p-4 hover-lift border-b-4 border-[#FE3082]">
+        <h3 class="text-sm font-medium text-slate-500 mb-1">Total Claims</h3>
+        <p class="text-2xl font-bold text-slate-900">{{ stats.totalClaims }}</p>
+      </div>
+      <div class="card p-4 hover-lift bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100">
+        <h3 class="text-sm font-medium text-emerald-800 mb-1">Total Revenue</h3>
+        <p class="text-2xl font-bold text-emerald-600">₹{{ stats.totalRevenue | number:'1.0-0' }}</p>
+      </div>
+    </div>
+
+    <!-- Charts Layout 1 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Policy Distribution -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+          <h3 class="text-lg font-semibold text-slate-900">Policy Distribution</h3>
+        </div>
+        <div class="p-5 flex justify-center h-80">
+          <canvas baseChart
+                  [data]="policyChartData"
+                  [options]="policyChartOptions"
+                  [type]="policyChartType">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Monthly Revenue -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+          <h3 class="text-lg font-semibold text-slate-900">Monthly Premium Revenue</h3>
+        </div>
+        <div class="p-5 h-80">
+          <canvas baseChart
+                  [data]="revenueChartData"
+                  [options]="revenueChartOptions"
+                  [type]="revenueChartType">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Layout 2 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Claims Overview -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+          <h3 class="text-lg font-semibold text-slate-900">Claims Overview</h3>
+        </div>
+        <div class="p-5 h-72">
+          <canvas baseChart
+                  [data]="claimsChartData"
+                  [options]="claimsChartOptions"
+                  [type]="claimsChartType">
+          </canvas>
+        </div>
+      </div>
+
+      <!-- Telemetry/Driving Behavior Insights -->
+      <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+          <h3 class="text-lg font-semibold text-slate-900">Driving Behavior Insights</h3>
+        </div>
+        <div class="p-5 h-72">
+          <canvas baseChart
+                  [data]="telemetryChartData"
+                  [options]="telemetryChartOptions"
+                  [type]="telemetryChartType">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+        </main>
+    </div>
+</div>

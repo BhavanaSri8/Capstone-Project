@@ -1,0 +1,129 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header flex items-center justify-between">
+        <div>
+          <h1 class="page-title">Premium Rules</h1>
+          <p class="page-subtitle">Configure UBI premium calculation logic</p>
+        </div>
+        <button (click)="openCreate()" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Rule
+        </button>
+      </div>
+
+      @if (toast) {
+        <div #toastAlert tabindex="-1" [attr.role]="toast.type === 'error' ? 'alert' : 'status'" [attr.aria-live]="toast.type === 'error' ? 'assertive' : 'polite'" class="mb-4 p-3 rounded-lg text-sm" [class]="toast.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'">{{ toast.message }}</div>
+      }
+
+      <div class="card">
+        @if (loading) {
+          <div class="p-6"><app-skeleton-loader [rowCount]="5" [colCount]="4"></app-skeleton-loader></div>
+        } @else if (rules.length === 0) {
+          <div class="flex flex-col items-center py-16">
+            <span class="text-4xl mb-3">⚙️</span>
+            <p class="text-slate-500 font-medium">No rules defined</p>
+            <button (click)="openCreate()" class="btn-primary mt-4">Create Rule</button>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th class="table-th">Name</th>
+                  <th class="table-th">Type</th>
+                  <th class="table-th">Condition</th>
+                  <th class="table-th">Modifier Value</th>
+                  <th class="table-th">Status</th>
+                  <th class="table-th text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (rule of rules; track rule.ruleId) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="table-td font-medium text-slate-900">
+                      <div>{{ rule.ruleName }}</div>
+                      <div class="text-xs text-slate-400 font-normal font-mono max-w-[200px] truncate" [title]="rule.description">{{ rule.description }}</div>
+                    </td>
+                    <td class="table-td">
+                      <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">{{ rule.ruleType }}</span>
+                    </td>
+                    <td class="table-td font-mono text-xs">{{ rule.condition }}</td>
+                    <td class="table-td font-medium" [class]="rule.value > 0 ? 'text-red-600' : 'text-emerald-600'">
+                      {{ rule.value > 0 ? '+' : '' }}{{ rule.value }}
+                    </td>
+                    <td class="table-td"><span [class]="rule.isActive ? 'badge-active' : 'badge-inactive'">{{ rule.isActive ? 'Active' : 'Inactive' }}</span></td>
+                    <td class="table-td text-right">
+                      <button (click)="toggleStatus(rule)" [class]="rule.isActive ? 'btn-danger text-xs py-1 px-2 mr-2' : 'btn-success text-xs py-1 px-2 mr-2'">
+                        {{ rule.isActive ? 'Deactivate' : 'Activate' }}
+                      </button>
+                      <button (click)="deleteRule(rule)" class="text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors inline-flex align-middle" title="Delete Rule">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      
+      <app-modal [isOpen]="showModal" [title]="'Create Premium Rule'" (closed)="showModal = false">
+        <form [formGroup]="ruleForm" (ngSubmit)="onSubmit()">
+          <div class="space-y-4">
+            <div>
+              <label class="form-label">Rule Name</label>
+              <input type="text" formControlName="ruleName" class="form-input" placeholder="e.g. High Mileage Penalty"/>
+              @if (ruleForm.get('ruleName')?.invalid && ruleForm.get('ruleName')?.touched) {
+                <p class="form-error">Rule name must be between 3 and 80 characters.</p>
+              }
+            </div>
+            <div>
+              <label class="form-label">Rule Type</label>
+              <select formControlName="ruleType" class="form-input">
+                <option value="">Select type</option>
+                <option value="DISTANCE">Distance</option>
+                <option value="NIGHT_DRIVING">Night Driving</option>
+                <option value="RISK_CATEGORY">Risk Category</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Condition (MVEL Expression)</label>
+              <input type="text" formControlName="condition" class="form-input font-mono text-sm" placeholder="e.g. totalDistanceKm > 1000"/>
+              @if (ruleForm.get('condition')?.invalid && ruleForm.get('condition')?.touched) {
+                <p class="form-error">Condition is required and cannot exceed 60 characters.</p>
+              }
+              <p class="text-xs text-slate-500 mt-1">Variables: totalDistanceKm, nightDrivingHours, riskCategory</p>
+            </div>
+            <div>
+              <label class="form-label">Value (₹ Modifier)</label>
+              <input type="number" formControlName="value" class="form-input" placeholder="e.g. 500 (penalty) or -200 (discount)"/>
+              @if (ruleForm.get('value')?.invalid && ruleForm.get('value')?.touched) {
+                <p class="form-error">Value must be between 0 and 1000000.</p>
+              }
+              <p class="text-xs text-slate-500 mt-1">Enter a positive modifier amount. Rule type decides whether it is added or discounted.</p>
+            </div>
+            <div>
+              <label class="form-label">Description</label>
+              <textarea formControlName="description" class="form-input" rows="2" placeholder="Details about this rule"></textarea>
+              @if (ruleForm.get('description')?.invalid && ruleForm.get('description')?.touched) {
+                <p class="form-error">Description must be between 5 and 300 characters.</p>
+              }
+            </div>
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <button type="button" (click)="showModal = false" class="btn-secondary">Cancel</button>
+            <button type="submit" [disabled]="submitting" class="btn-primary flex items-center gap-2">
+              @if (submitting) { <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> }
+              Save Rule
+            </button>
+          </div>
+        </form>
+      </app-modal>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,128 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header flex justify-between items-center mb-6">
+        <div>
+          <h1 class="page-title">Claims History</h1>
+          <p class="page-subtitle">Archive of processed claims (approved and rejected)</p>
+        </div>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+        <div class="flex flex-col md:flex-row gap-4 justify-between items-center">
+          <div class="flex p-1 bg-slate-100 rounded-lg w-fit">
+            <button (click)="onStatusChange('APPROVED')" 
+              [class]="filterStatus === 'APPROVED' ? 'bg-white text-green-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+              class="px-4 py-2 rounded-md font-semibold transition-all text-sm flex items-center gap-2">
+              <i class="fas fa-check-circle"></i>
+              Approved
+            </button>
+            <button (click)="onStatusChange('REJECTED')" 
+              [class]="filterStatus === 'REJECTED' ? 'bg-white text-red-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'"
+              class="px-4 py-2 rounded-md font-semibold transition-all text-sm flex items-center gap-2">
+              <i class="fas fa-times-circle"></i>
+              Rejected
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="relative flex-1 md:w-80">
+              <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()"
+                placeholder="Search by ID or customer..."
+                class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none text-sm">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            </div>
+            <button (click)="clearFilters()" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors" title="Reset">
+              <i class="fas fa-undo"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      @if (loading) {
+        <div class="card p-6 border-none shadow-none bg-transparent">
+          <app-skeleton-loader [rowCount]="6" [colCount]="6"></app-skeleton-loader>
+        </div>
+      } @else if (allClaims.length === 0) {
+        <div class="card flex flex-col items-center justify-center py-20 text-center border-dashed bg-white">
+          <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+            <i class="fas fa-folder-open text-3xl text-slate-300"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">No {{ filterStatus | lowercase }} claims found</h3>
+          <p class="text-slate-500 text-sm mb-6 max-w-sm">
+            We couldn't find any processed claims matching your current filters or search term.
+          </p>
+          <button (click)="clearFilters()" class="text-indigo-600 font-semibold hover:text-indigo-700 text-sm">
+            Clear all filters
+          </button>
+        </div>
+      } @else {
+        <div class="card overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-100 border-b border-slate-200">
+                <tr>
+                  <th class="table-th text-left">Claim ID</th>
+                  <th class="table-th text-left">Customer</th>
+                  <th class="table-th text-left">Policy</th>
+                  <th class="table-th text-right">Amount (₹)</th>
+                  <th class="table-th text-left">Status</th>
+                  <th class="table-th text-left">Processed By</th>
+                  <th class="table-th text-left">Date Filed</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (claim of allClaims; track claim.claimId) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="table-td font-mono font-semibold text-slate-900 text-sm">#{{ claim.claimId }}</td>
+                    <td class="table-td font-medium text-slate-900 text-sm">
+                      {{ getCustomerName(claim) }}
+                    </td>
+                    <td class="table-td text-slate-700 text-sm">
+                      {{ getPolicyName(claim) }}
+                    </td>
+                    <td class="table-td text-right font-bold text-slate-900 text-sm">₹{{ claim.claimAmount | number:'1.2-2' }}</td>
+                    <td class="table-td">
+                      <span [class]="claim.claimStatus === 'APPROVED' ? 'badge-approved text-xs' : 'badge-rejected text-xs'">
+                        {{ claim.claimStatus }}
+                      </span>
+                    </td>
+                    <td class="table-td">
+                      @if (claim.reviewedBy) {
+                        <span class="text-sm font-medium text-slate-900">{{ claim.reviewedBy }}</span>
+                      } @else {
+                        <span class="text-sm text-slate-500">—</span>
+                      }
+                    </td>
+                    <td class="table-td text-xs text-slate-500">{{ claim.submittedDate | date:'dd MMM yyyy' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+            <div class="text-xs text-slate-500">
+              Page <strong>{{ page + 1 }}</strong> of <strong>{{ totalPages }}</strong>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="prevPage()" [disabled]="page === 0" 
+                class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 disabled:opacity-50 transition-colors">
+                Previous
+              </button>
+              <button (click)="nextPage()" [disabled]="page >= totalPages - 1"
+                class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 text-xs font-semibold hover:bg-slate-50 disabled:opacity-50 transition-colors">
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>

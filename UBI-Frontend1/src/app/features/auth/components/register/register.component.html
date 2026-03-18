@@ -1,0 +1,140 @@
+<div class="min-h-screen bg-no-repeat flex items-center justify-center p-4"
+    style="background-image: linear-gradient(rgba(248, 250, 252, 0.84), rgba(248, 250, 252, 0.84)), url('/image1.png'); background-size: cover, contain; background-position: center, left bottom;">
+    <div class="w-full max-w-lg">
+
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-3 mb-6">
+                <img src="/logo.png" alt="DriveIQ Logo" class="h-12 w-auto object-contain" />
+                <span class="text-3xl font-extrabold tracking-tight text-slate-900">DriveIQ</span>
+            </div>
+            <h1 class="text-xl font-semibold text-slate-900">Create your account</h1>
+            <p class="text-sm text-slate-500 mt-1">Join the smart insurance platform</p>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                @if (errorMessage) {
+                <div #errorAlert tabindex="-1" role="alert" aria-live="assertive"
+                    class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2">
+                    <svg class="w-4 h-4 text-red-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-sm text-red-700">{{ errorMessage }}</p>
+                </div>
+                }
+
+                @if (successMessage) {
+                <div role="status" aria-live="polite"
+                    class="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-start gap-2">
+                    <svg class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p class="text-sm text-emerald-700">{{ successMessage }}</p>
+                </div>
+                }
+
+                <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <div class="col-span-2">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input id="fullName" type="text" formControlName="fullName" class="form-input"
+                                placeholder="John Smith" maxlength="60" />
+                            @if (fullName?.invalid && fullName?.touched) {
+                            <p class="form-error">
+                                @if (fullName?.hasError('required')) { Full name is required. }
+                                @if (fullName?.hasError('minlength')) { Minimum 2 characters required. }
+                                @if (fullName?.hasError('maxlength')) { Full name cannot exceed 60 characters. }
+                                @if (fullName?.hasError('pattern')) { Use letters and spaces only. }
+                            </p>
+                            }
+                        </div>
+
+                        <div class="col-span-2">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input id="email" type="email" formControlName="email" class="form-input"
+                                placeholder="you@company.com" />
+                            @if (email?.invalid && email?.touched) {
+                            <p class="form-error">
+                                @if (email?.hasError('required')) { Email is required. }
+                                @if (email?.hasError('email')) { Enter a valid email address. }
+                            </p>
+                            }
+                        </div>
+
+                        <div>
+                            <label for="password" class="form-label">Password</label>
+                            <div class="relative">
+                                <input id="password" [type]="showPassword ? 'text' : 'password'"
+                                    formControlName="password" class="form-input pr-10"
+                                    placeholder="Min. 6 characters" />
+                                <button type="button" (click)="showPassword = !showPassword"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            @if (password?.invalid && password?.touched) {
+                            <p class="form-error">
+                                @if (password?.hasError('required')) { Password is required. }
+                                @if (password?.hasError('minlength')) { Minimum 6 characters. }
+                            </p>
+                            }
+                        </div>
+
+                        <div>
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input id="phone" type="tel" formControlName="phone" class="form-input"
+                                placeholder="10 digit number" maxlength="10" />
+                            @if (phone?.invalid && phone?.touched) {
+                            <p class="form-error">
+                                @if (phone?.hasError('required')) { Phone is required. }
+                                @if (phone?.hasError('pattern')) { Enter a valid 10-digit phone. }
+                            </p>
+                            }
+                        </div>
+
+                        <div>
+                            <label for="age" class="form-label">Age</label>
+                            <input id="age" type="number" formControlName="age" class="form-input"
+                                placeholder="Your age" min="18" max="100" />
+                            @if (age?.invalid && age?.touched) {
+                            <p class="form-error">
+                                @if (age?.hasError('required')) { Age is required. }
+                                @if (age?.hasError('min')) { Must be at least 18. }
+                                @if (age?.hasError('max')) { Enter a valid age. }
+                            </p>
+                            }
+                        </div>
+                    </div>
+
+
+                    <button type="submit" [disabled]="loading"
+                        class="btn-primary w-full mt-6 flex items-center justify-center gap-2">
+                        @if (loading) {
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Creating Account...
+                        } @else {
+                        Create Account
+                        }
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <p class="text-center text-sm text-slate-500 mt-4">
+            Already have an account?
+            <a routerLink="/login" class="text-[#75013F] hover:text-[#5e0132] font-medium">Sign in</a>
+        </p>
+        <p class="text-center mt-3">
+            <a routerLink="/" class="text-sm text-slate-400 hover:text-slate-600">← Back to home</a>
+        </p>
+    </div>
+</div>

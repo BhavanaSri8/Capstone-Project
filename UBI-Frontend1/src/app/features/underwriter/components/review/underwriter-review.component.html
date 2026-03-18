@@ -1,0 +1,167 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header mb-6">
+        <h1 class="page-title">Policy Review</h1>
+        <p class="page-subtitle">Review all applications with full audit trail</p>
+      </div>
+
+      @if (toast) {
+        <div [class]="toast.type === 'success' ? 'mb-4 p-3 rounded-lg text-sm bg-green-50 text-green-700' : 'mb-4 p-3 rounded-lg text-sm bg-red-50 text-red-700'" role="alert">
+          {{ toast.message }}
+        </div>
+      }
+
+      <!-- Status filter tabs -->
+      <div class="flex gap-2 mb-4 flex-wrap">
+        @for (status of statusOptions; track status) {
+          <button (click)="setFilter(status)"
+            [class]="selectedStatus === status
+              ? 'px-4 py-1.5 rounded-full text-xs font-semibold bg-purple-600 text-white'
+              : 'px-4 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200'">
+            {{ status === 'ALL' ? 'All' : status.replace('_', ' ') }}
+          </button>
+        }
+      </div>
+
+      <div class="card">
+        <div class="overflow-x-auto">
+          @if (loading) {
+            <div class="p-6"><app-skeleton-loader [rowCount]="6" [colCount]="5"></app-skeleton-loader></div>
+          } @else if (filteredApplications.length === 0) {
+            <div class="p-10 text-center text-slate-400 text-sm">No applications match this filter.</div>
+          } @else {
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th class="table-th">ID</th>
+                  <th class="table-th">Customer</th>
+                  <th class="table-th">Policy</th>
+                  <th class="table-th text-center">Risk</th>
+                  <th class="table-th">Telematics</th>
+                  <th class="table-th">Remarks</th>
+                  <th class="table-th">Date</th>
+                  <th class="table-th text-center">Docs</th>
+                  <th class="table-th text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (app of filteredApplications; track app.orderId) {
+                  <tr class="hover:bg-slate-50 group">
+                    <td class="px-4 py-4 font-mono text-xs text-slate-500">#{{ app.orderId }}</td>
+                    <td class="px-4 py-4">
+                      <p class="font-semibold text-slate-900">{{ app.customerName }}</p>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">Age: {{ app.driverAge || 'N/A' }}</span>
+                        <span class="text-[10px] text-slate-400">{{ app.customerEmail }}</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4">
+                      <p class="font-medium text-slate-800">{{ app.policyName }}</p>
+                      <p class="text-xs text-slate-500">{{ app.coverageType }}</p>
+                    </td>
+                    <td class="px-4 py-4 text-center">
+                      <div class="flex flex-col gap-1 items-center">
+                        <div class="flex items-center gap-2">
+                           <span [class]="'px-2 py-0.5 rounded text-[10px] font-bold border ' + 
+                             (app.riskLevel === 'HIGH' ? 'bg-red-100 text-red-700 border-red-200' :
+                              app.riskLevel === 'MEDIUM' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                              app.riskLevel === 'LOW' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                              'bg-slate-100 text-slate-500 border-slate-200')">
+                             {{ app.riskLevel || 'EVALUATING' }}
+                           </span>
+                           <span class="text-xs font-semibold text-slate-700">{{ app.riskScore || 0 }}%</span>
+                        </div>
+                        <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                           <div class="h-full rounded-full transition-all duration-500"
+                                [style.width.%]="app.riskScore || 0"
+                                [class]="(app.riskScore || 0) >= 70 ? 'bg-red-500' : (app.riskScore || 0) >= 40 ? 'bg-amber-500' : 'bg-emerald-500'">
+                           </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4">
+                      <div class="grid grid-cols-1 gap-1 text-[10px] text-slate-500">
+                        <div class="flex justify-between gap-4"><span>Night Driving:</span> <span class="font-bold text-slate-700">{{ app.nightDrivingHours != null ? app.nightDrivingHours + 'h' : 'N/A' }}</span></div>
+                        <div class="flex justify-between gap-4"><span>Distance:</span> <span class="font-bold text-slate-700">{{ app.totalDistanceKm != null ? app.totalDistanceKm + 'km' : 'N/A' }}</span></div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-xs text-slate-500 italic">
+                      {{ app.underwriterRemarks || 'No remarks yet' }}
+                    </td>
+                    <td class="px-4 py-4 text-xs text-slate-400 whitespace-nowrap">{{ app.orderDate | date:'mediumDate' }}</td>
+                    <td class="px-4 py-4 text-center">
+                      <div class="flex flex-wrap justify-center gap-2 max-w-[150px] mx-auto">
+                        @for (doc of getDocuments(app); track doc.storedName) {
+                          <div class="flex flex-col gap-1 items-center border border-slate-100 p-1 rounded bg-slate-50/50">
+                            <span class="text-[9px] text-slate-400 truncate max-w-[60px]" [title]="doc.originalName">
+                              {{ doc.originalName }}
+                            </span>
+                            <div class="flex gap-1">
+                              <button (click)="viewDocument(app.orderId, doc)" 
+                                title="View Document"
+                                class="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-all shadow-sm">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                              </button>
+                              <button (click)="downloadDocument(app.orderId, doc)" 
+                                title="Download Document"
+                                class="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all shadow-sm">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        } @empty {
+                          <span class="text-[10px] text-slate-300">No docs</span>
+                        }
+                      </div>
+                    </td>
+                    <td class="px-4 py-4">
+                      <div class="flex gap-1 justify-end transition-opacity">
+                        @if (app.orderStatus === 'PENDING' || app.orderStatus === 'DOCUMENTS_REQUESTED') {
+                          <button (click)="approve(app)" [disabled]="submittingId === app.orderId" title="Approve"
+                            class="p-1.5 bg-emerald-50 text-emerald-600 rounded hover:bg-emerald-100 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                          </button>
+                          <button (click)="reject(app)" [disabled]="submittingId === app.orderId" title="Reject"
+                            class="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                          <button (click)="requestDocs(app)" [disabled]="submittingId === app.orderId" title="Documents"
+                            class="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                          </button>
+                        } @else {
+                          <span class="px-2 py-0.5 rounded text-[10px] font-bold border" 
+                                [class]="app.orderStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-red-100 text-red-700 border-red-200'">
+                            {{ app.orderStatus }}
+                          </span>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+        @if (totalPages > 1) {
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+            <p class="text-xs text-slate-500 font-medium">Page {{ page + 1 }} of {{ totalPages }}</p>
+            <div class="flex gap-2">
+              <button (click)="prevPage()" [disabled]="page === 0" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all">Previous</button>
+              <button (click)="nextPage()" [disabled]="page >= totalPages - 1" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all">Next</button>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

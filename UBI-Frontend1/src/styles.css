@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hartford-primary: #75013f;
+  --hartford-secondary: #fe3082;
+  --hartford-accent: #f9a3c2;
+  --hartford-bg: #f5f5f5;
+  --hartford-surface: #ffffff;
+  --hartford-text: #1a1a1a;
+  --hartford-text-muted: #6b6b6b;
+  --hartford-border: #e5e5e5;
+  --hartford-gradient: linear-gradient(175deg, #4a0028 0%, #75013F 40%, #c4125e 75%, #FE3082 100%);
+  --hartford-gradient-light: linear-gradient(135deg, rgba(117, 1, 63, 0.1) 0%, rgba(254, 48, 130, 0.1) 100%);
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    background-color: var(--hartford-bg);
+    color: var(--hartford-text);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--hartford-primary);
+  }
+
+  .btn-primary:hover {
+    background-color: #5e0132;
+  }
+
+  .btn-secondary {
+    @apply font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+    background-color: #fde7ef;
+    color: var(--hartford-primary);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--hartford-accent);
+  }
+
+  .btn-success {
+    @apply text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--hartford-secondary);
+  }
+
+  .btn-success:hover {
+    background-color: #e02a74;
+  }
+
+  .btn-danger {
+    @apply text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--hartford-primary);
+  }
+
+  .btn-danger:hover {
+    background-color: #5e0132;
+  }
+
+  .btn-warning {
+    @apply text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: var(--hartford-secondary);
+  }
+
+  .btn-warning:hover {
+    background-color: #e02a74;
+  }
+
+  .card {
+    @apply rounded-lg shadow-sm;
+    background-color: var(--hartford-surface);
+    border: 1px solid var(--hartford-border);
+  }
+
+  .card-header {
+    @apply px-6 py-4 border-b;
+    border-color: var(--hartford-border);
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium mb-1;
+    color: var(--hartford-text-muted);
+  }
+
+  .form-input {
+    @apply w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 transition-colors;
+    color: var(--hartford-text);
+    border: 1px solid var(--hartford-border);
+  }
+
+  .form-input::placeholder {
+    color: #9b9b9b;
+  }
+
+  .form-input:focus {
+    border-color: var(--hartford-primary);
+    box-shadow: 0 0 0 1px var(--hartford-primary);
+  }
+
+  .form-input.ng-invalid.ng-touched:not(:focus) {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 1px #dc2626;
+  }
+
+  .form-input.ng-invalid.ng-touched:focus {
+    border-color: var(--hartford-primary);
+    box-shadow: 0 0 0 1px var(--hartford-primary);
+  }
+
+  .form-error {
+    @apply text-xs text-red-600 mt-1;
+  }
+
+  .badge-active {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+
+  .badge-inactive {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    background-color: #f1f1f1;
+    color: var(--hartford-text-muted);
+  }
+
+  .badge-pending {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800;
+  }
+
+  .badge-approved {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+
+  .badge-rejected {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  }
+
+  .badge-low {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+
+  .badge-medium {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800;
+  }
+
+  .badge-high {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  }
+
+  .table-th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider;
+    background-color: #75013F;
+    color: #FFFFFF;
+  }
+
+  .table-td {
+    @apply px-4 py-3 text-sm;
+    color: var(--hartford-text);
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative;
+    color: var(--hartford-text-muted);
+    border-left: 4px solid transparent;
+  }
+
+  .sidebar-link:hover {
+    background-color: #FFF1F7;
+    color: #FE3082;
+    border-left: 4px solid #FE3082;
+  }
+
+  .sidebar-link-active {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium;
+    background: linear-gradient(135deg, rgba(254, 48, 130, 0.1) 0%, rgba(249, 163, 194, 0.1) 100%);
+    color: #75013F;
+    border-left: 4px solid #FE3082;
+    font-weight: 600;
+  }
+
+  /* Brand Crimson Sidebar */
+  .sidebar-brand-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer;
+  }
+
+  .sidebar-brand-link:hover {
+    background: rgba(255, 255, 255, 0.13);
+    transform: translateX(4px);
+  }
+
+  .sidebar-brand-link:hover span:first-child {
+    background: rgba(255, 255, 255, 0.28) !important;
+  }
+
+  .sidebar-brand-active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .sidebar-brand-active span:first-child {
+    background: rgba(255, 255, 255, 0.38) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+  }
+
+  .page-header {
+    @apply mb-6;
+  }
+
+  .page-title {
+    @apply text-2xl font-semibold;
+    color: var(--hartford-text);
+  }
+
+  .page-subtitle {
+    @apply text-sm mt-1;
+    color: var(--hartford-text-muted);
+  }
+}

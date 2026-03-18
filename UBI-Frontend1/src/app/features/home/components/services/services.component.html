@@ -1,0 +1,32 @@
+<section id="services" class="py-20 bg-slate-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center mb-16">
+      <h2 class="text-3xl sm:text-4xl font-bold text-[#1A1A1A] mb-4">Our Services</h2>
+      <p class="text-lg text-[#6B6B6B] max-w-2xl mx-auto">
+        Comprehensive insurance solutions tailored to your driving habits and lifestyle
+      </p>
+    </div>
+
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div *ngFor="let service of services" class="bg-white p-8 rounded-xl shadow-md hover:shadow-xl transition-all transform hover:-translate-y-2">
+        
+        <div class="w-16 h-16 bg-gradient-to-br from-[#FDE7EF] to-[#F9A3C2] rounded-lg flex items-center justify-center mb-6">
+          <svg class="w-8 h-8 text-[#75013F]" fill="currentColor" viewBox="0 0 24 24">
+            <path *ngIf="service.icon === 'shield'" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"></path>
+            <path *ngIf="service.icon === 'chart'" d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"></path>
+            <path *ngIf="service.icon === 'clock'" d="M11.99 5C6.47 5 2 9.48 2 15s4.47 10 9.99 10C17.52 25 22 20.52 22 15S17.52 5 11.99 5zM12 20c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm.5-9H11V7h1.5v4z"></path>
+            <path *ngIf="service.icon === 'phone'" d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"></path>
+            <path *ngIf="service.icon === 'award'" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path>
+            <path *ngIf="service.icon === 'location'" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
+          </svg>
+        </div>
+
+        
+        <h3 class="text-xl font-bold text-[#1A1A1A] mb-3">{{ service.title }}</h3>
+        <p class="text-[#6B6B6B] leading-relaxed">{{ service.description }}</p>
+      </div>
+    </div>
+  </div>
+</section>

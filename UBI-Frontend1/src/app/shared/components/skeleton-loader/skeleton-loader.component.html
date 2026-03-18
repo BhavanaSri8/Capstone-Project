@@ -1,0 +1,9 @@
+<div class="animate-pulse">
+  @for (row of rows; track $index) {
+    <div class="flex space-x-4 mb-3">
+      @for (col of columns; track $index) {
+        <div class="h-4 bg-slate-200 rounded flex-1"></div>
+      }
+    </div>
+  }
+</div>

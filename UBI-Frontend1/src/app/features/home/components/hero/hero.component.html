@@ -1,0 +1,60 @@
+<section id="about" class="relative bg-gradient-to-r from-[#75013F] to-[#75013F] text-white py-20 sm:py-32 overflow-hidden">
+  
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute top-0 right-0 w-96 h-96 bg-white rounded-full -mr-48 -mt-48"></div>
+    <div class="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full -ml-48 -mb-48"></div>
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between">
+    
+    <div class="lg:w-1/2 mb-12 lg:mb-0">
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+        Smart Insurance for Smart Drivers
+      </h1>
+      <p class="text-lg sm:text-xl text-blue-100 mb-8 leading-relaxed">
+        Pay only for how you drive. DriveIQ uses AI-powered telematics to give you personalized insurance premiums based on your actual driving behavior. Safe driving = Lower premiums.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4">
+        <button
+          (click)="scrollToCoverage()"
+          class="px-8 py-4 bg-white text-[#75013F] font-bold rounded-lg hover:bg-[#F5F5F5] transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+        >
+          Explore Coverage Plans
+        </button>
+        <button
+          (click)="scrollToServices()"
+          class="px-8 py-4 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:bg-opacity-10 transition-all"
+        >
+          Learn More
+        </button>
+      </div>
+    </div>
+
+    
+    <div class="lg:w-1/2 flex justify-center">
+      <div class="relative w-full max-w-[520px] rounded-2xl bg-white/10 backdrop-blur-sm p-3 shadow-2xl">
+        <img
+          src="/image.png"
+          alt="DriveIQ usage-based insurance illustration"
+          class="w-full h-auto rounded-xl object-contain"
+        />
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="relative mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center">
+      <p class="text-4xl font-bold mb-2">{{ totalPlansDisplay }}</p>
+      <p class="text-blue-100">Available Plans</p>
+    </div>
+    <div class="text-center">
+      <p class="text-4xl font-bold mb-2">₹{{ avgPremiumDisplay }}</p>
+      <p class="text-blue-100">Avg. Base Premium</p>
+    </div>
+    <div class="text-center">
+      <p class="text-4xl font-bold mb-2">{{ activePlansRateDisplay }}</p>
+      <p class="text-blue-100">Active Plan Ratio</p>
+    </div>
+  </div>
+</section>

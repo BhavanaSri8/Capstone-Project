@@ -1,0 +1,327 @@
+[
+  {
+    "module": "Authentication",
+    "controller": "AuthController",
+    "endpoint": "/api/auth/register",
+    "method": "POST",
+    "description": "Register a new user",
+    "requestBody": {
+      "fullName": "String",
+      "email": "String",
+      "password": "String (min 6)",
+      "phone": "String",
+      "roleId": "Long",
+      "age": "Integer (18-100)"
+    },
+    "response": {
+      "message": "String",
+      "userId": "Long"
+    },
+    "authentication": "Public",
+    "rolesAllowed": ["All"],
+    "service": "AuthService"
+  },
+  {
+    "module": "Authentication",
+    "controller": "AuthController",
+    "endpoint": "/api/auth/login",
+    "method": "POST",
+    "description": "Authenticate user and return JWT token",
+    "requestBody": {
+      "email": "String",
+      "password": "String"
+    },
+    "response": {
+      "token": "String",
+      "email": "String",
+      "role": "String",
+      "userId": "Long"
+    },
+    "authentication": "Public",
+    "rolesAllowed": ["All"],
+    "service": "AuthService"
+  },
+  {
+    "module": "Authentication",
+    "controller": "AuthController",
+    "endpoint": "/api/auth/forgot-password",
+    "method": "POST",
+    "description": "Request a password reset link",
+    "requestBody": {
+      "email": "String"
+    },
+    "response": {
+      "message": "String"
+    },
+    "authentication": "Public",
+    "rolesAllowed": ["All"],
+    "service": "AuthService"
+  },
+  {
+    "module": "Authentication",
+    "controller": "AuthController",
+    "endpoint": "/api/auth/reset-password",
+    "method": "POST",
+    "description": "Reset password using token",
+    "requestBody": {
+      "token": "String",
+      "newPassword": "String"
+    },
+    "response": {
+      "message": "String"
+    },
+    "authentication": "Public",
+    "rolesAllowed": ["All"],
+    "service": "AuthService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "PolicyController",
+    "endpoint": "/api/policies",
+    "method": "POST",
+    "description": "Create a new policy",
+    "requestBody": {
+      "policyName": "String",
+      "coverageType": "String",
+      "basePremium": "Double",
+      "description": "String",
+      "policyTermYears": "Integer",
+      "maturityAmount": "Double",
+      "hasPremiumWaiver": "Boolean",
+      "hasPartialWithdrawal": "Boolean",
+      "withdrawalConditions": "String"
+    },
+    "response": "PolicyResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN"],
+    "service": "PolicyService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "PolicyController",
+    "endpoint": "/api/policies",
+    "method": "GET",
+    "description": "Get all policies with filtering and pagination",
+    "parameters": [
+      { "name": "status", "type": "String", "required": false },
+      { "name": "search", "type": "String", "required": false },
+      { "name": "page", "type": "Integer", "default": 0 },
+      { "name": "size", "type": "Integer", "default": 10 }
+    ],
+    "response": "Page<PolicyResponse>",
+    "authentication": "JWT",
+    "rolesAllowed": ["Any"],
+    "service": "PolicyService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "PolicyController",
+    "endpoint": "/api/policies/{policyId}",
+    "method": "GET",
+    "description": "Get policy details by ID",
+    "response": "PolicyResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["Any"],
+    "service": "PolicyService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "PolicyController",
+    "endpoint": "/api/policies/{policyId}",
+    "method": "PUT",
+    "description": "Update an existing policy",
+    "requestBody": "PolicyRequest",
+    "response": "PolicyResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN"],
+    "service": "PolicyService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "PolicyController",
+    "endpoint": "/api/policies/{policyId}/status",
+    "method": "PUT",
+    "description": "Update policy status (Active/Inactive)",
+    "parameters": [{ "name": "isActive", "type": "Boolean", "required": true }],
+    "response": "PolicyResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN"],
+    "service": "PolicyService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "PolicyOrderController",
+    "endpoint": "/api/policy-orders",
+    "method": "POST",
+    "description": "Create a new policy order (Application)",
+    "requestBody": "Multipart (userId, policyId, vehicleId, documents)",
+    "response": "PolicyOrder",
+    "authentication": "JWT",
+    "rolesAllowed": ["CUSTOMER"],
+    "service": "PolicyOrderService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "PolicyOrderController",
+    "endpoint": "/api/policy-orders",
+    "method": "GET",
+    "description": "Get all policy orders (Applications)",
+    "parameters": [
+      { "name": "status", "type": "String", "required": false },
+      { "name": "search", "type": "String", "required": false },
+      { "name": "page", "type": "Integer", "default": 0 },
+      { "name": "size", "type": "Integer", "default": 10 }
+    ],
+    "response": "Page<PolicyOrder>",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN", "UNDERWRITER"],
+    "service": "PolicyOrderService"
+  },
+  {
+    "module": "Policy Management",
+    "controller": "SubscriptionController",
+    "endpoint": "/api/subscriptions",
+    "method": "GET",
+    "description": "Get all active subscriptions",
+    "response": "Page<PolicySubscription>",
+    "authentication": "JWT",
+    "rolesAllowed": ["Any"],
+    "service": "PolicySubscriptionService"
+  },
+  {
+    "module": "Vehicle Management",
+    "controller": "VehicleController",
+    "endpoint": "/api/vehicles",
+    "method": "POST",
+    "description": "Register a new vehicle",
+    "requestBody": "VehicleRequest",
+    "response": "VehicleResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["CUSTOMER"],
+    "service": "VehicleService"
+  },
+  {
+    "module": "Vehicle Management",
+    "controller": "VehicleController",
+    "endpoint": "/api/vehicles",
+    "method": "GET",
+    "description": "Get user vehicles",
+    "response": "Page<VehicleResponse>",
+    "authentication": "JWT",
+    "rolesAllowed": ["Any"],
+    "service": "VehicleService"
+  },
+  {
+    "module": "Claims Management",
+    "controller": "ClaimController",
+    "endpoint": "/api/claims",
+    "method": "POST",
+    "description": "Raise a new insurance claim",
+    "requestBody": "Multipart (subscriptionId, claimAmount, claimReason, documents)",
+    "response": "ClaimResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["CUSTOMER"],
+    "service": "ClaimService"
+  },
+  {
+    "module": "Claims Management",
+    "controller": "ClaimController",
+    "endpoint": "/api/claims/{claimId}/approve",
+    "method": "PUT",
+    "description": "Approve a claim",
+    "response": "ClaimResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN", "CLAIMS_OFFICER"],
+    "service": "ClaimService"
+  },
+  {
+    "module": "Payments",
+    "controller": "PaymentController",
+    "endpoint": "/api/payments/simulate",
+    "method": "POST",
+    "description": "Simulate a payment via Razorpay",
+    "requestBody": { "policyId": "Long" },
+    "response": "PaymentOrderResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["CUSTOMER"],
+    "service": "PaymentService"
+  },
+  {
+    "module": "Payments",
+    "controller": "PaymentController",
+    "endpoint": "/api/payments/history",
+    "method": "GET",
+    "description": "Get user payment history",
+    "response": "Page<PaymentHistoryResponse>",
+    "authentication": "JWT",
+    "rolesAllowed": ["CUSTOMER"],
+    "service": "PaymentService"
+  },
+  {
+    "module": "Premium Rule Engine",
+    "controller": "RuleController",
+    "endpoint": "/api/rules",
+    "method": "GET",
+    "description": "Get all premium calculation rules",
+    "response": "List<PremiumRule>",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN"],
+    "service": "PremiumRuleRepository"
+  },
+  {
+    "module": "Premium Rule Engine",
+    "controller": "PremiumController",
+    "endpoint": "/api/premium/calculate/{subscriptionId}",
+    "method": "POST",
+    "description": "Calculate monthly premium based on usage",
+    "parameters": [{ "name": "usageId", "type": "Long", "required": true }],
+    "response": "PremiumCalculation",
+    "authentication": "JWT",
+    "rolesAllowed": ["Any"],
+    "service": "PremiumService"
+  },
+  {
+    "module": "Notifications",
+    "controller": "NotificationController",
+    "endpoint": "/api/notifications",
+    "method": "GET",
+    "description": "Get user notifications",
+    "response": "List<NotificationResponse>",
+    "authentication": "JWT",
+    "rolesAllowed": ["Any"],
+    "service": "NotificationService"
+  },
+  {
+    "module": "Admin Management",
+    "controller": "DashboardController",
+    "endpoint": "/api/dashboard/summary",
+    "method": "GET",
+    "description": "Get system-wide dashboard summary",
+    "response": "Map<String, Object>",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN"],
+    "service": "DashboardService"
+  },
+  {
+    "module": "Analytics",
+    "controller": "StatisticsController",
+    "endpoint": "/api/statistics/dashboard",
+    "method": "GET",
+    "description": "Get detailed dashboard statistics",
+    "response": "StatisticsResponse",
+    "authentication": "JWT",
+    "rolesAllowed": ["ADMIN", "UNDERWRITER"],
+    "service": "StatisticsService"
+  },
+  {
+    "module": "User Management",
+    "controller": "UserProfileController",
+    "endpoint": "/api/users/profile",
+    "method": "GET",
+    "description": "Get current user profile",
+    "response": "User",
+    "authentication": "JWT",
+    "rolesAllowed": ["Any"],
+    "service": "UserRepository"
+  }
+]

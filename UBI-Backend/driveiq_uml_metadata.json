@@ -1,0 +1,177 @@
+{
+  "actors": [
+    { "name": "Customer", "description": "Registers vehicles, applies for policies, pays premiums, and raises claims." },
+    { "name": "Admin", "description": "Manages users, policies, premium rules, and views global statistics." },
+    { "name": "Underwriter", "description": "Reviews policy applications, assesses risk, and approves/rejects policies." },
+    { "name": "Claims Officer", "description": "Reviews and processes insurance claims submitted by customers." },
+    { "name": "Email System", "type": "External", "description": "Sends notifications and status updates to users." },
+    { "name": "Payment Gateway (Razorpay)", "type": "External", "description": "Processes premium payments (simulated in backend)." }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "attributes": [
+        { "name": "userId", "type": "Long", "key": "Primary" },
+        { "name": "fullName", "type": "String" },
+        { "name": "email", "type": "String", "unique": true },
+        { "name": "password", "type": "String" },
+        { "name": "phone", "type": "String" },
+        { "name": "age", "type": "Integer" },
+        { "name": "status", "type": "String", "default": "ACTIVE" },
+        { "name": "address", "type": "String" }
+      ],
+      "relationships": [
+        { "type": "ManyToOne", "target": "Role", "property": "role" }
+      ]
+    },
+    {
+      "name": "Policy",
+      "attributes": [
+        { "name": "policyId", "type": "Long", "key": "Primary" },
+        { "name": "policyName", "type": "String" },
+        { "name": "coverageType", "type": "String" },
+        { "name": "basePremium", "type": "Double" },
+        { "name": "isActive", "type": "Boolean" }
+      ]
+    },
+    {
+      "name": "PolicyOrder",
+      "attributes": [
+        { "name": "orderId", "type": "Long", "key": "Primary" },
+        { "name": "orderStatus", "type": "String", "default": "PENDING" },
+        { "name": "riskScore", "type": "Double" },
+        { "name": "riskLevel", "type": "String" }
+      ],
+      "relationships": [
+        { "type": "ManyToOne", "target": "User", "property": "user" },
+        { "type": "ManyToOne", "target": "Policy", "property": "policy" },
+        { "type": "ManyToOne", "target": "Vehicle", "property": "vehicle" }
+      ]
+    },
+    {
+      "name": "PolicySubscription",
+      "attributes": [
+        { "name": "subscriptionId", "type": "Long", "key": "Primary" },
+        { "name": "startDate", "type": "LocalDate" },
+        { "name": "endDate", "type": "LocalDate" },
+        { "name": "subscriptionStatus", "type": "String" }
+      ],
+      "relationships": [
+        { "type": "OneToOne", "target": "PolicyOrder", "property": "order" },
+        { "type": "ManyToOne", "target": "Policy", "property": "policy" }
+      ]
+    },
+    {
+      "name": "Vehicle",
+      "attributes": [
+        { "name": "vehicleId", "type": "Long", "key": "Primary" },
+        { "name": "vehicleNumber", "type": "String", "unique": true },
+        { "name": "vehicleType", "type": "String" },
+        { "name": "status", "type": "String" }
+      ]
+    },
+    {
+      "name": "Claim",
+      "attributes": [
+        { "name": "claimId", "type": "Long", "key": "Primary" },
+        { "name": "claimAmount", "type": "Double" },
+        { "name": "claimStatus", "type": "String", "default": "PENDING" }
+      ],
+      "relationships": [
+        { "type": "ManyToOne", "target": "PolicySubscription", "property": "subscription" },
+        { "type": "ManyToOne", "target": "User", "property": "reviewedBy" }
+      ]
+    },
+    {
+      "name": "UsageData",
+      "attributes": [
+        { "name": "usageId", "type": "Long", "key": "Primary" },
+        { "name": "totalDistanceKm", "type": "Double" },
+        { "name": "nightDrivingHours", "type": "Double" },
+        { "name": "riskCategory", "type": "String" }
+      ],
+      "relationships": [
+        { "type": "ManyToOne", "target": "PolicySubscription", "property": "subscription" }
+      ]
+    },
+    {
+      "name": "PremiumCalculation",
+      "attributes": [
+        { "name": "calculationId", "type": "Long", "key": "Primary" },
+        { "name": "finalPremium", "type": "Double" }
+      ],
+      "relationships": [
+        { "type": "ManyToOne", "target": "PolicySubscription", "property": "subscription" },
+        { "type": "ManyToOne", "target": "UsageData", "property": "usage" }
+      ]
+    }
+  ],
+  "controllers": [
+    "AuthController", "PolicyController", "PolicyOrderController", "VehicleController", 
+    "ClaimController", "PaymentController", "PremiumController", "UnderwriterController",
+    "AdminController", "DashboardController", "NotificationController", "StatisticsController"
+  ],
+  "services": [
+    "AuthService", "PolicyService", "PolicyOrderService", "VehicleService", 
+    "ClaimService", "PaymentService", "PremiumService", "UnderwriterService",
+    "NotificationService", "EmailService", "PremiumRuleEngine", "RiskEvaluationService"
+  ],
+  "repositories": [
+    "UserRepository", "PolicyRepository", "PolicyOrderRepository", "VehicleRepository",
+    "ClaimRepository", "PaymentRepository", "PolicySubscriptionRepository", "UsageDataRepository"
+  ],
+  "frontendComponents": [
+    { "module": "Auth", "components": ["LoginComponent", "RegisterComponent", "ForgotPasswordComponent"] },
+    { "module": "Customer", "components": ["CustomerDashboardComponent", "CustomerPoliciesComponent", "CustomerVehiclesComponent", "CustomerClaimsComponent", "CustomerPremiumComponent"] },
+    { "module": "Underwriter", "components": ["UnderwriterDashboardComponent", "UnderwriterOrdersComponent", "UnderwriterReviewComponent"] },
+    { "module": "Admin", "components": ["AdminDashboardComponent", "AdminUsersComponent", "AdminRulesComponent", "StatisticsComponent"] },
+    { "module": "Claims", "components": ["ClaimsDashboardComponent", "ClaimsPendingComponent", "ClaimsHistoryComponent"] }
+  ],
+  "workflows": [
+    {
+      "name": "Policy Application Flow",
+      "steps": [
+        "Customer selects policy and vehicle",
+        "Customer uploads documents",
+        "PolicyOrderService creates order in PENDING status",
+        "NotificationService notifies Underwriter",
+        "Underwriter reviews application",
+        "PolicyService/UnderwriterService approves order",
+        "PolicySubscription is created",
+        "Customer is notified"
+      ]
+    },
+    {
+      "name": "Premium Calculation Flow",
+      "steps": [
+        "UsageData is submitted for a subscription",
+        "PremiumService triggers calculation",
+        "PremiumRuleEngine applies active rules (Distance, Night Driving, Risk)",
+        "PremiumCalculation record is saved",
+        "Customer views premium in dashboard"
+      ]
+    },
+    {
+      "name": "Claim Processing Flow",
+      "steps": [
+        "Customer submits claim with documents",
+        "ClaimService validates subscription status",
+        "NotificationService notifies Claims Officer",
+        "Claims Officer reviews and approves/rejects claim",
+        "EmailService sends confirmation email",
+        "Customer views updated claim status"
+      ]
+    }
+  ],
+  "externalSystems": [
+    { "name": "SMTP Server", "purpose": "Email delivery via JavaMailSender" },
+    { "name": "Razorpay API", "purpose": "Simulated payment gateway integration" },
+    { "name": "Filesystem / S3", "purpose": "Storage for uploaded policy and claim documents" }
+  ],
+  "architecture": {
+    "backend": "Spring Boot (Layered)",
+    "frontend": "Angular 17 (SPA)",
+    "database": "H2/MySQL (Relational)",
+    "security": "JWT + Spring Security RBAC"
+  }
+}

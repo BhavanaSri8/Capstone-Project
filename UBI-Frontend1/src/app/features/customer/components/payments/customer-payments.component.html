@@ -1,0 +1,104 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header mb-6">
+        <h1 class="page-title">Payment History</h1>
+        <p class="page-subtitle">View your past premium payments and invoices</p>
+      </div>
+
+      <div class="mb-6 flex flex-wrap gap-4 items-center">
+        <div class="flex-1 min-w-[300px]">
+          <div class="relative">
+            <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()" placeholder="Search by transaction ID..." class="form-input pl-10 h-11 border-slate-200 focus:border-blue-500 rounded-xl text-sm shadow-sm" />
+            <svg class="w-5 h-5 absolute left-3 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="w-48">
+          <select [(ngModel)]="status" (change)="onFilter()" class="form-input h-11 border-slate-200 focus:border-blue-500 rounded-xl text-sm shadow-sm">
+            <option value="All">All Statuses</option>
+            <option value="SUCCESS">Success</option>
+            <option value="PENDING">Pending</option>
+            <option value="FAILED">Failed</option>
+          </select>
+        </div>
+      </div>
+
+      @if (loading) {
+        <app-loading-spinner message="Loading your payment history..."></app-loading-spinner>
+      } @else {
+        <div class="card overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-[#700c3c] border-b border-[#700c3c] text-xs uppercase tracking-wider text-white font-bold">
+                  <th class="p-4">Transaction ID</th>
+                  <th class="p-4">Policy Application ID</th>
+                  <th class="p-4">Amount</th>
+                  <th class="p-4">Date</th>
+                  <th class="p-4 text-center">Status</th>
+                  <th class="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (payment of payments; track payment.transactionId) {
+                  <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="p-4 font-mono text-xs text-slate-700 font-medium">{{ payment.transactionId }}</td>
+                    <td class="p-4 font-medium text-slate-900">#{{ payment.policyId }}</td>
+                    <td class="p-4 font-bold text-slate-900">₹{{ payment.amount | number:'1.2-2' }}</td>
+                    <td class="p-4 text-slate-600 truncate">{{ payment.date | date:'medium' }}</td>
+                    <td class="p-4 text-center">
+                      <span class="inline-flex px-2 py-1 rounded-full text-xs font-bold shadow-sm"
+                            [ngClass]="{
+                              'bg-emerald-100 text-emerald-800 border border-emerald-200': payment.status === 'SUCCESS',
+                              'bg-amber-100 text-amber-800 border border-amber-200': payment.status === 'PENDING',
+                              'bg-red-100 text-red-800 border border-red-200': payment.status === 'FAILED'
+                            }">
+                        {{ payment.status }}
+                      </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        @if (payment.status === 'SUCCESS') {
+                            <div class="flex justify-end gap-2">
+                                <button (click)="viewInvoice(payment.transactionId)" class="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Invoice">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                </button>
+                                <button (click)="downloadInvoice(payment.transactionId)" class="p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Download Invoice">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                </button>
+                            </div>
+                        } @else {
+                            <span class="text-xs text-slate-400 italic">No invoice</span>
+                        }
+                    </td>
+                  </tr>
+                }
+                @if (payments.length === 0) {
+                  <tr>
+                    <td colspan="5" class="p-8 text-center text-slate-500">
+                      <svg class="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      No payments found
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+            <p class="text-xs text-slate-500 font-medium">Page {{ page + 1 }} of {{ totalPages || 1 }}</p>
+            <div class="flex gap-2">
+              <button (click)="prevPage()" [disabled]="page === 0" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm">Previous</button>
+              <button (click)="nextPage()" [disabled]="page >= totalPages - 1" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all shadow-sm">Next</button>
+            </div>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>

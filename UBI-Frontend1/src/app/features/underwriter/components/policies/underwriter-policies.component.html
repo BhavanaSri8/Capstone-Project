@@ -1,0 +1,81 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header mb-6">
+        <h1 class="page-title">Approved Policies</h1>
+        <p class="page-subtitle">All applications that have been approved and converted to active policies</p>
+      </div>
+
+      <div class="mb-6">
+        <div class="relative max-w-md">
+          <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()" placeholder="Search by policy or customer name..." class="form-input pl-10 h-11 shadow-sm border-slate-200 focus:border-blue-500 rounded-xl text-sm" />
+          <svg class="w-5 h-5 absolute left-3 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        @if (loading) {
+          <div class="p-6"><app-skeleton-loader [rowCount]="6" [colCount]="7"></app-skeleton-loader></div>
+        } @else if (approvedApplications.length === 0) {
+          <div class="p-20 text-center">
+            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-slate-900">No active policies found</h3>
+            <p class="text-slate-500">Try adjusting your search criteria.</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th class="table-th">Order ID</th>
+                  <th class="table-th">Customer</th>
+                  <th class="table-th">Policy</th>
+                  <th class="table-th">Coverage Type</th>
+                  <th class="table-th">Vehicle</th>
+                  <th class="table-th">Remarks</th>
+                  <th class="table-th">Approved Date</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (app of approvedApplications; track app.orderId) {
+                  <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-mono text-xs text-slate-500">#{{ app.orderId }}</td>
+                    <td class="px-4 py-3">
+                      <p class="font-medium text-slate-900">{{ app.customerName }}</p>
+                      <p class="text-xs text-slate-400">{{ app.customerEmail }}</p>
+                    </td>
+                    <td class="px-4 py-3 font-medium text-slate-800">{{ app.policyName }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ app.coverageType || '—' }}</td>
+                    <td class="px-4 py-3 text-xs text-slate-500">
+                      {{ app.vehicleNumber ? (app.vehicleType + ' — ' + app.vehicleNumber) : '—' }}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-500 max-w-[180px] truncate" [title]="app.underwriterRemarks">
+                      {{ app.underwriterRemarks || '—' }}
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-400">{{ app.orderDate | date:'mediumDate' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+            <p class="text-xs text-slate-500 font-medium">Page {{ page + 1 }} of {{ totalPages || 1 }}</p>
+            <div class="flex gap-2">
+              <button (click)="prevPage()" [disabled]="page === 0" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all">Previous</button>
+              <button (click)="nextPage()" [disabled]="page >= totalPages - 1" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all">Next</button>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

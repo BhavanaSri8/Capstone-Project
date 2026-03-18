@@ -1,0 +1,153 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header">
+        <h1 class="page-title">DriveIQ Telemetry Sync</h1>
+        <p class="page-subtitle">Submit and review your monthly driving data</p>
+      </div>
+
+      @if (toast) {
+        <div #toastAlert tabindex="-1" [attr.role]="toast.type === 'error' ? 'alert' : 'status'" [attr.aria-live]="toast.type === 'error' ? 'assertive' : 'polite'" class="mb-4 p-3 rounded-lg text-sm" [class]="toast.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'">{{ toast.message }}</div>
+      }
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-1">
+          <div class="card h-full">
+            <div class="card-header"><h2 class="font-semibold text-slate-900 flex items-center gap-2"><svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg> Manual App Sync</h2></div>
+            <div class="p-6">
+              <p class="text-sm text-slate-500 mb-6">Manually synchronize your IoT device or DriveIQ mobile app data to securely update your risk profile.</p>
+              
+              <form [formGroup]="usageForm" (ngSubmit)="onSubmit()">
+                <div class="space-y-5">
+                  <div>
+                    <label class="form-label">Subscription Policy</label>
+                    <select formControlName="subscriptionId" class="form-input" (change)="loadHistory()">
+                      <option value="">Select active policy...</option>
+                      @for (sub of activeSubs; track sub.subscriptionId) {
+                        <option [value]="sub.subscriptionId">{{ sub.order.policy.policyName }} (#{{ sub.subscriptionId }})</option>
+                      }
+                    </select>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label">Month</label>
+                      <select formControlName="month" class="form-input">
+                        @for (m of [1,2,3,4,5,6,7,8,9,10,11,12]; track m) {
+                          <option [value]="m">{{ m }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div>
+                      <label class="form-label">Year</label>
+                      <input type="number" formControlName="year" class="form-input"/>
+                        <p class="form-error" *ngIf="usageForm.get('year')?.invalid && usageForm.get('year')?.touched">Enter a valid year.</p>
+                    </div>
+                  </div>
+
+                  <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
+                    <div>
+                      <label class="form-label text-blue-900">Total Distance (km)</label>
+                      <div class="relative">
+                        <input type="number" formControlName="totalDistanceKm" class="form-input pl-10 bg-white" placeholder="0"/>
+                          <p class="form-error" *ngIf="usageForm.get('totalDistanceKm')?.invalid && usageForm.get('totalDistanceKm')?.touched">Distance must be between 0 and 100000 km.</p>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-medium">📍</div>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="form-label text-blue-900">Night Driving Hours</label>
+                      <div class="relative">
+                        <input type="number" formControlName="nightDrivingHours" class="form-input pl-10 bg-white" placeholder="0"/>
+                          <p class="form-error" *ngIf="usageForm.get('nightDrivingHours')?.invalid && usageForm.get('nightDrivingHours')?.touched">Night driving hours must be between 0 and 744.</p>
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-medium">🌙</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" [disabled]="submitting || usageForm.invalid" class="w-full btn-primary py-3 flex items-center justify-center gap-2">
+                    @if (submitting) {
+                      <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> Uploading Data...
+                    } @else {
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg> Start Sync
+                    }
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="lg:col-span-2">
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <app-stat-card label="Avg. Monthly Distance" [value]="avgDistance" icon="🛣️" color="blue" sublabel="Kilometers"></app-stat-card>
+            <app-stat-card label="Night Risk Ratio" [value]="nightRatio" icon="⏱️" color="amber" sublabel="Percentage of prep"></app-stat-card>
+          </div>
+
+          @if (latestPremium) {
+            <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-xs font-semibold uppercase tracking-widest text-emerald-700">Latest Calculated Premium</p>
+                  <p class="mt-1 text-3xl font-bold text-emerald-900">₹{{ latestPremium.finalPremium | number:'1.2-2' }}</p>
+                  <p class="mt-2 text-sm text-emerald-800">
+                    Base ₹{{ latestPremium.basePremium | number:'1.2-2' }}
+                    <span class="mx-1">|</span>
+                    Modifier {{ latestPremium.totalModifier > 0 ? '+' : '' }}₹{{ latestPremium.totalModifier | number:'1.2-2' }}
+                  </p>
+                </div>
+                <a routerLink="/customer/premium" class="inline-flex items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800">
+                  Open Premium History
+                </a>
+              </div>
+            </div>
+          }
+
+          <div class="card h-[calc(100%-110px)] flex flex-col">
+            <div class="card-header border-b border-slate-100"><h2 class="font-semibold text-slate-900">Recorded Telemetry Logs</h2></div>
+            <div class="flex-1 p-0 overflow-y-auto">
+              @if (history.length === 0) {
+                <div class="p-8 text-center bg-slate-50/50 h-full flex flex-col items-center justify-center">
+                  <span class="text-3xl mb-2">📊</span>
+                  <p class="text-slate-500 font-medium text-sm">Select a subscription above to view past telemetry records, or submit your first data block to establish your risk profile.</p>
+                </div>
+              } @else {
+                <table class="w-full">
+                  <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                    <tr>
+                      <th class="table-th">Period</th>
+                      <th class="table-th">Total Distance</th>
+                      <th class="table-th text-center">Night Hours</th>
+                      <th class="table-th text-right">Risk Assessment</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    @for (log of history; track log.usageId) {
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="table-td font-medium text-slate-900">{{ getMonthName(log.billingMonth) }} {{ log.billingYear }}</td>
+                        <td class="table-td font-mono">{{ log.totalDistanceKm | number:'1.1-1' }} km</td>
+                        <td class="table-td text-center">{{ log.nightDrivingHours | number:'1.1-1' }}h</td>
+                        <td class="table-td text-right">
+                          @if (log.riskCategory === 'LOW') {
+                            <span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-bold inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> LOW</span>
+                          } @else if (log.riskCategory === 'MEDIUM') {
+                            <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-bold inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> MEDIUM</span>
+                          } @else {
+                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> HIGH</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,185 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="page-header mb-6 flex justify-between items-center">
+        <div>
+          <h1 class="page-title text-2xl font-bold text-slate-900">Policy Orders</h1>
+          <p class="page-subtitle text-slate-500">Evaluating risk and processing pending applications</p>
+        </div>
+      </div>
+
+      @if (toast) {
+        <div [class]="toast.type === 'success' ? 'mb-4 p-3 rounded-lg text-sm bg-green-50 text-green-700 border border-green-200' : 'mb-4 p-3 rounded-lg text-sm bg-red-50 text-red-700 border border-red-200'" role="alert">
+          {{ toast.message }}
+        </div>
+      }
+
+      <div class="mb-6 flex flex-wrap gap-4 items-center">
+        <div class="flex-1 min-w-[300px]">
+          <div class="relative">
+            <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()" placeholder="Search by policy or customer name..." class="form-input pl-10 h-11 shadow-sm border-slate-200 focus:border-blue-500 rounded-xl text-sm" />
+            <svg class="w-5 h-5 absolute left-3 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="w-48">
+          <select [(ngModel)]="status" (change)="onFilter()" class="form-input h-11 shadow-sm border-slate-200 focus:border-blue-500 rounded-xl text-sm">
+            <option value="All">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="DOCUMENTS_REQUESTED">Docs Requested</option>
+          </select>
+        </div>
+        <button (click)="clearFilters()" class="text-sm text-blue-600 hover:text-blue-800 font-medium px-2 py-2">Clear Filters</button>
+      </div>
+
+      <div class="card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        @if (loading) {
+          <div class="p-6"><app-skeleton-loader [rowCount]="6" [colCount]="7"></app-skeleton-loader></div>
+        } @else if (orders.length === 0) {
+          <div class="p-16 text-center">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-slate-900">All caught up!</h3>
+            <p class="text-slate-500">There are no pending applications to review.</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-[#700c3c] text-white border-b border-[#700c3c]">
+                <tr>
+                  <th class="table-th text-left">Order ID</th>
+                  <th class="table-th text-left">Customer</th>
+                  <th class="table-th text-left">Policy</th>
+                  <th class="table-th text-left">Vehicle Info</th>
+                  <th class="table-th text-left">Date</th>
+                  <th class="table-th text-center">Docs</th>
+                  <th class="table-th text-center">Risk Evaluation</th>
+                  <th class="table-th text-center">Payment</th>
+                  <th class="table-th text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (app of orders; track app.orderId) {
+                  <tr class="hover:bg-slate-50/50 transition-colors">
+                    <td class="px-6 py-4 font-mono text-xs text-slate-500">#{{ app.orderId }}</td>
+                    <td class="px-6 py-4">
+                      <div class="font-semibold text-slate-900">{{ app.customerName }}</div>
+                      <div class="text-xs text-slate-400">{{ app.customerEmail }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="font-medium text-slate-800">{{ app.policyName }}</div>
+                      <div class="text-xs text-slate-500">{{ app.coverageType }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      @if (app.vehicleNumber) {
+                        <span class="inline-flex items-center text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                          {{ app.vehicleNumber.replace('-', '') }}
+                        </span>
+                      } @else {
+                        <span class="text-slate-300">—</span>
+                      }
+                    </td>
+                    <td class="px-6 py-4 text-xs text-slate-400 whitespace-nowrap">{{ app.orderDate | date:'mediumDate' }}</td>
+                    <td class="px-6 py-4 text-center">
+                      <div class="flex flex-wrap justify-center gap-2 max-w-[150px] mx-auto">
+                        @for (doc of getDocuments(app); track doc.storedName) {
+                          <div class="flex flex-col gap-1 items-center border border-slate-100 p-1 rounded bg-slate-50/50">
+                            <span class="text-[9px] text-slate-400 truncate max-w-[60px]" [title]="doc.originalName">
+                              {{ doc.originalName }}
+                            </span>
+                            <div class="flex gap-1">
+                              <button (click)="viewDocument(app.orderId, doc)" 
+                                title="View Document"
+                                class="p-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-all shadow-sm">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                              </button>
+                              <button (click)="downloadDocument(app.orderId, doc)" 
+                                title="Download Document"
+                                class="p-1.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-all shadow-sm">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        } @empty {
+                          <span class="text-[10px] text-slate-300">No docs</span>
+                        }
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex flex-col items-center gap-1">
+                        <span [class]="'px-2 py-0.5 rounded text-[10px] font-bold border ' + getRiskClass(app.riskLevel)">
+                          {{ app.riskLevel || 'EVALUATING...' }}
+                        </span>
+                        @if (app.riskScore !== null) {
+                          <div class="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full" 
+                                 [style.width.%]="app.riskScore"
+                                 [class]="app.riskScore >= 70 ? 'bg-red-500' : app.riskScore >= 40 ? 'bg-amber-500' : 'bg-emerald-500'">
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                      <span [class]="'px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ' + 
+                        (app.orderStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
+                         'bg-slate-100 text-slate-500 border border-slate-200')">
+                        {{ app.orderStatus === 'PAID' ? 'PAID' : 'PENDING' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex gap-2 justify-end">
+                        @if (app.orderStatus === 'PENDING' || app.orderStatus === 'DOCUMENTS_REQUESTED') {
+                          <button (click)="approve(app)" [disabled]="submittingId === app.orderId" title="Approve"
+                            class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-100 disabled:opacity-50">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                          </button>
+                          <button (click)="reject(app)" [disabled]="submittingId === app.orderId" title="Reject"
+                            class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-100 disabled:opacity-50">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                          <button (click)="requestDocs(app)" [disabled]="submittingId === app.orderId" title="Request Documents"
+                            class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100 disabled:opacity-50">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                          </button>
+                        } @else {
+                          <span [class]="'px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase ' + 
+                            (app.orderStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
+                             app.orderStatus === 'REJECTED' ? 'bg-red-100 text-red-700 border border-red-200' : 
+                             'bg-slate-100 text-slate-600 border border-slate-200')">
+                            {{ app.orderStatus }}
+                          </span>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+            <p class="text-xs text-slate-500 font-medium">Page {{ page + 1 }} of {{ totalPages || 1 }}</p>
+            <div class="flex gap-2">
+              <button (click)="prevPage()" [disabled]="page === 0" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all">Previous</button>
+              <button (click)="nextPage()" [disabled]="page >= totalPages - 1" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 disabled:opacity-40 transition-all">Next</button>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

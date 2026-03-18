@@ -1,0 +1,110 @@
+<div class="flex h-screen overflow-hidden bg-slate-50">
+  <app-sidebar></app-sidebar>
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+    <main class="flex-1 overflow-y-auto p-6">
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Claims Management</h1>
+                    <p class="text-gray-500 mt-1">Review and process customer insurance claims.</p>
+                </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <!-- Status Tabs -->
+                    <div class="flex items-center p-1 bg-gray-50 rounded-xl w-fit">
+                        <button *ngFor="let s of ['All', 'PENDING', 'APPROVED', 'REJECTED']" 
+                            (click)="onStatusChange(s)"
+                            [class]="status === s 
+                                ? 'px-4 py-2 text-sm font-semibold text-indigo-700 bg-white rounded-lg shadow-sm' 
+                                : 'px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors'">
+                            {{ s === 'All' ? 'All Claims' : s }}
+                        </button>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="flex items-center gap-4 flex-1 md:max-w-md">
+                        <div class="relative flex-1">
+                            <input type="text" [(ngModel)]="search" (ngModelChange)="onSearch()"
+                                placeholder="Search by Claim ID or Customer name..."
+                                class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <button (click)="clearFilters()"
+                            class="p-2.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                            title="Reset Filters">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+      @if (toast) {
+        <div #toastAlert tabindex="-1" [attr.role]="toast.type === 'error' ? 'alert' : 'status'" [attr.aria-live]="toast.type === 'error' ? 'assertive' : 'polite'" class="mb-4 p-3 rounded-lg text-sm" [class]="toast.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'">{{ toast.message }}</div>
+      }
+
+      <div class="card">
+        @if (loading) {
+          <div class="p-6"><app-skeleton-loader [rowCount]="6" [colCount]="5"></app-skeleton-loader></div>
+        } @else if (claims.length === 0) {
+          <div class="flex flex-col items-center py-16">
+            <span class="text-4xl mb-3">📄</span>
+            <p class="text-slate-500">No claims found</p>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th class="table-th">Claim ID</th>
+                  <th class="table-th">Customer</th>
+                  <th class="table-th">Amount</th>
+                  <th class="table-th">Reason</th>
+                  <th class="table-th">Submitted</th>
+                  <th class="table-th">Status</th>
+                  <th class="table-th text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (claim of claims; track claim.claimId) {
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="table-td text-xs text-slate-400">#{{ claim.claimId }}</td>
+                    <td class="table-td">
+                      <p class="font-medium text-sm text-slate-900">{{ claim.subscription?.order?.user?.fullName || claim.customerName || 'Unknown' }}</p>
+                    </td>
+                    <td class="table-td font-medium">₹{{ claim.claimAmount | number:'1.2-2' }}</td>
+                    <td class="table-td text-sm max-w-xs truncate">{{ claim.claimReason || 'N/A' }}</td>
+                    <td class="table-td text-xs">{{ claim.submittedDate | date:'dd MMM yyyy' }}</td>
+                    <td class="table-td">
+                      <span [class]="claim.claimStatus === 'PENDING' ? 'badge-pending' : claim.claimStatus === 'APPROVED' ? 'badge-approved' : 'badge-rejected'">{{ claim.claimStatus }}</span>
+                    </td>
+                    <td class="table-td text-right">
+                      @if (claim.claimStatus === 'PENDING') {
+                        <div class="flex gap-2 justify-end">
+                          <button (click)="approve(claim)" class="btn-success text-xs py-1 px-2">Approve</button>
+                          <button (click)="reject(claim)" class="btn-danger text-xs py-1 px-2">Reject</button>
+                        </div>
+                      } @else {
+                        <span class="text-xs text-slate-500">
+                          @if (claim.reviewedBy?.fullName) {
+                            By {{ claim.reviewedBy.fullName }}
+                          } @else if (claim.reviewedBy) {
+                            By {{ claim.reviewedBy }}
+                          } @else {
+                            Processed
+                          }
+                        </span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

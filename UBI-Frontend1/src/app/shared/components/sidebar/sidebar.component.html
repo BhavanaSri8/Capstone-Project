@@ -1,0 +1,41 @@
+<aside class="w-64 h-full flex flex-col shadow-2xl" style="background: linear-gradient(175deg, #4a0028 0%, #75013F 40%, #c4125e 75%, #FE3082 100%)">
+
+    <!-- Header -->
+    <div class="px-5 py-5 flex items-center gap-3" style="border-bottom: 1px solid rgba(255,255,255,0.15)">
+        <img src="/logo.png" alt="DriveIQ Logo" class="h-9 w-auto object-contain shadow-sm" />
+        <div>
+            <p class="text-white font-bold text-base leading-tight tracking-wide">DriveIQ</p>
+            <p class="text-xs" style="color: rgba(255,255,255,0.65)">{{ roleLabel }} Portal</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+        @for (item of navItems; track item.route) {
+        <a [routerLink]="item.route" routerLinkActive="sidebar-brand-active"
+            [routerLinkActiveOptions]="{exact: item.route.endsWith('dashboard')}"
+            class="sidebar-brand-link group">
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                style="background: rgba(255,255,255,0.12)"
+                [innerHTML]="getIcon(item.icon)">
+            </span>
+            <span class="text-sm font-medium" style="color: rgba(255,255,255,0.9)">{{ item.label }}</span>
+        </a>
+        }
+    </nav>
+
+    <!-- Footer -->
+    <div class="px-5 py-4" style="border-top: 1px solid rgba(255,255,255,0.12)">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                style="background: rgba(255,255,255,0.2)">
+                {{ role.charAt(0) }}
+            </div>
+            <div>
+                <p class="text-white text-xs font-semibold">{{ role }}</p>
+                <p class="text-xs" style="color: rgba(255,255,255,0.45)">DriveIQ &copy; 2025</p>
+            </div>
+        </div>
+    </div>
+
+</aside>
