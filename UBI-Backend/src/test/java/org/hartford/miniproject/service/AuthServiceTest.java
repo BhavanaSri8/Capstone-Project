@@ -47,11 +47,18 @@ class AuthServiceTest {
 
     @Test
     void register_createsUserAndReturnsResponse() {
-        RegisterRequest request = new RegisterRequest("User", "user@mail.com", "secret12", "999999", 1L);
+        RegisterRequest request = RegisterRequest.builder()
+                .fullName("User")
+                .email("user@mail.com")
+                .password("secret12")
+                .phone("999999")
+                .roleId(1L)
+                .age(25)
+                .build();
         Role role = new Role(1L, "CUSTOMER");
 
         when(userRepository.findByEmail("user@mail.com")).thenReturn(Optional.empty());
-        when(roleRepository.findById(1L)).thenReturn(Optional.of(role));
+        when(roleRepository.findByRoleName("CUSTOMER")).thenReturn(Optional.of(role));
         when(passwordEncoder.encode("secret12")).thenReturn("encoded");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
